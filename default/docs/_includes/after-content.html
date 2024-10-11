@@ -1,0 +1,49 @@
+<section style="display: none">
+    <!--
+    Convert the assets image src,
+    it is the compatible way to support both md preview locally and static assets url.
+    -->
+
+    <p id="site-baseurl">{{ site.baseurl }}</p>
+
+    <script>
+        {
+            let siteBaseurl = document.getElementById('site-baseurl').textContent,
+                imgs = document.getElementsByClassName('page__content')[0].getElementsByTagName('img'),
+                img, src, dst;
+
+            console.log(`Converting assets image src for ${imgs.length} images.`)
+            for (let i = 0; i < imgs.length; i++) {
+                img = imgs[i];
+                src = img.src;
+                dst = img.src.replace('/assets/', siteBaseurl + '/assets/')
+                img.src = dst
+                img.style.border = 'solid red';
+                console.log(`${i + 1} | ${imgs.length} : ${src} -> ${dst}`)
+            }
+        }
+    </script>
+
+</section>
+
+<section>
+    <!-- Erase the first <p> whose textContent is "[toc]" -->
+    <script>
+        {
+            let ps = document.getElementsByTagName('p'), p;
+            for (let i = 0; i < ps.length; i++) {
+                p = ps[i];
+                if (p.textContent.toLowerCase() === '[toc]') {
+                    p.textContent = ''
+                    console.log('Found [toc] and erased it.')
+                    break
+                }
+            }
+        }
+    </script>
+</section>
+
+<section>
+    <script type="text/javascript"
+        src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</section>

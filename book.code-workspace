@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "docs"
+    }
+  ],
+  "settings": {
+    "cSpell.words": ["fontawesome", "listenzcc", "mathjax"]
+  }
+}
