@@ -37,9 +37,9 @@ github_username: listenzcc
 
 # ! The Local and Github settings conflict with each other.
 # Local
-theme: minimal-mistakes-jekyll
+# theme: minimal-mistakes-jekyll
 # Github
-# remote_theme: "mmistakes/minimal-mistakes"
+remote_theme: "mmistakes/minimal-mistakes"
 
 defaults:
   - scope:
