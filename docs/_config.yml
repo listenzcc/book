@@ -82,6 +82,7 @@ plugins:
   - jekyll-toc
   - jekyll-include-cache
   - rouge
+  - jekyll-spaceship
 
 # kramdown support
 markdown: kramdown
