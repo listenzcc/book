@@ -167,6 +167,8 @@ jekyll-spaceship:
     css:
       class: emoji
     src: https://github.githubassets.com/images/icons/emoji/
+
+# ----------------------------------------------------------------
 # suppress the deprecation warning,
 # since there is nothing I can do about it,
 # and I don't want to fix it neither.
