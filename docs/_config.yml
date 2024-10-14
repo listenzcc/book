@@ -37,9 +37,9 @@ github_username: listenzcc
 
 # ! The Local and Github settings conflict with each other.
 # Local
-# theme: minimal-mistakes-jekyll
+theme: minimal-mistakes-jekyll
 # Github
-remote_theme: "mmistakes/minimal-mistakes"
+# remote_theme: "mmistakes/minimal-mistakes"
 
 defaults:
   - scope:
@@ -90,27 +90,27 @@ markdown: kramdown
 # Display copy code button
 enable_copy_code_button: true
 
-# rouge highlighter support
-highlighter: rouge
+# # rouge highlighter support
+# highlighter: rouge
 
-# syntax highlight
-kramdown:
-  input: GFM
-  syntax_highlighter: rouge
-  syntax_highlighter_opts:
-    css_class: highlight
-    default_lang: console
-    span:
-      line_numbers: false
-    block:
-      line_numbers: true
-      start_line: 1
+# # syntax highlight
+# kramdown:
+#   input: GFM
+#   syntax_highlighter: rouge
+#   syntax_highlighter_opts:
+#     css_class: highlight
+#     default_lang: console
+#     span:
+#       line_numbers: false
+#     block:
+#       line_numbers: true
+#       start_line: 1
 
 # Where things are
 jekyll-spaceship:
   # default enabled processors
   processors:
-    - table-processor
+    # - table-processor
     - mathjax-processor
     - plantuml-processor
     - mermaid-processor
