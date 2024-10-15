@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+<loc>/book/help-center/</loc>
+<lastmod>2024-09-27T00:00:00+00:00</lastmod>
+</url>
+<url>
+<loc>/book/search/</loc>
+<lastmod>2024-09-27T00:00:00+00:00</lastmod>
+</url>
+<url>
+<loc>/book/categories/</loc>
+<lastmod>2024-09-27T00:00:00+00:00</lastmod>
+</url>
+<url>
+<loc>/book/year-archive/</loc>
+<lastmod>2024-09-27T00:00:00+00:00</lastmod>
+</url>
+<url>
+<loc>/book/intro/markdown/jekyll/minimalmistakes/2024/10/10/startup.html</loc>
+<lastmod>2024-10-10T00:00:00+00:00</lastmod>
+</url>
+<url>
+<loc>/book/jekyll/update/2024/10/10/welcome-to-jekyll.html</loc>
+<lastmod>2024-10-10T07:54:48+00:00</lastmod>
+</url>
+<url>
+<loc>/book/entropy/2024/10/13/n-doors-problem-with-entropy.html</loc>
+<lastmod>2024-10-13T00:00:00+00:00</lastmod>
+</url>
+<url>
+<loc>/book/about/</loc>
+</url>
+<url>
+<loc>/book/</loc>
+</url>
+</urlset>
