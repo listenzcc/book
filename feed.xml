@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="/book/feed.xml" rel="self" type="application/atom+xml" /><link href="/book/" rel="alternate" type="text/html" /><updated>2024-10-24T11:00:44+00:00</updated><id>/book/feed.xml</id><title type="html">Listenzcc talks a lot</title><subtitle>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.</subtitle><author><name>listenzcc</name></author><entry><title type="html">Docker踩坑记</title><link href="/book/it/docker/2024/10/24/docker.html" rel="alternate" type="text/html" title="Docker踩坑记" /><published>2024-10-24T00:00:00+00:00</published><updated>2024-10-24T00:00:00+00:00</updated><id>/book/it/docker/2024/10/24/docker</id><content type="html" xml:base="/book/it/docker/2024/10/24/docker.html"><![CDATA[<p>按道理说<code class="language-plaintext highlighter-rouge">docker</code>是一种常见的技术，但由于魔法长城和版本更新的存在，这个东西并没有想象中那么好用。本文对我在<code class="language-plaintext highlighter-rouge">Win11</code>机器上安装和使用<code class="language-plaintext highlighter-rouge">docker</code>时遇到的有意思的事情进行记录，留作日后避坑之用。</p>
+
+<p>[toc]</p>
+
+<h2 id="安装">安装</h2>
+
+<p>安装<code class="language-plaintext highlighter-rouge">docker</code>非常简单，只需要在他们的官网下载和安装最新的安装包即可。但拉取<code class="language-plaintext highlighter-rouge">centos</code>镜像时我立即遇到一个奇怪的问题，那就是它试图读取某个不存在的目录。我尝试了<code class="language-plaintext highlighter-rouge">stackoverflow</code>上的解决方案，思路是将<code class="language-plaintext highlighter-rouge">docker</code>切换到<code class="language-plaintext highlighter-rouge">windows</code>支持的模式，而不是留在<code class="language-plaintext highlighter-rouge">linux</code>模式。虽然这个方法很有道理，但并没有解决我的问题。</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Error message when pull or search centos</span><span class="w">
+
+</span><span class="cm">&lt;# Possible solution (Not working in my case):
+	$ 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchDaemon
+	Url: https://stackoverflow.com/questions/40459280/docker-cannot-start-on-windows
+#&gt;</span><span class="w">
+
+</span><span class="c"># Expect: error during connect: Post "http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.47/images/create?fromImage=centos&amp;tag=latest": open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.</span><span class="w">
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">pull</span><span class="w"> </span><span class="nx">centos</span><span class="w">
+
+</span><span class="c"># How to switch docker engine between windows and linux</span><span class="w">
+</span><span class="c"># Switch docker to window engine</span><span class="w">
+</span><span class="s1">'C:\Program Files\Docker\Docker\DockerCli.exe'</span><span class="w"> </span><span class="nt">-SwitchDaemon</span><span class="w">
+
+</span><span class="c"># Switch docker to linux engine</span><span class="w">
+</span><span class="s1">'C:\Program Files\Docker\Docker\DockerCli.exe'</span><span class="w"> </span><span class="nt">-SwitchLinuxEngine</span><span class="w">
+</span></code></pre></div></div>
+
+<p>接下来我注意到了另一个事情，那就是<code class="language-plaintext highlighter-rouge">docker</code>的新特性，即支持<code class="language-plaintext highlighter-rouge">wsl2</code>（我没有继续查证这是从哪个版本开始的）的运行模式，我在安装时也确实勾选了这个选项。顺着这个思路，我开始检查我的<code class="language-plaintext highlighter-rouge">wsl2</code>版本。不出意料的，我的机器这时不仅没有安装它，甚至没有为它开启必要的<code class="language-plaintext highlighter-rouge">windows features</code>。在我解决了<code class="language-plaintext highlighter-rouge">wsl2</code>的问题后，之前的<code class="language-plaintext highlighter-rouge">error</code>就没再出现过，于是我想这两个步骤对于 docker 的安装来说都是必要的。</p>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image.png" alt="image.png" /></p>
+
+<p><a href="https://www.docker.com/">Docker: Accelerated Container Application Development</a></p>
+
+<h3 id="国内源registry-mirrors">国内源（registry-mirrors）</h3>
+
+<p>当我按照手册进行镜像拉取时，我立即遇到了一个奇怪的故障，该故障的成因是魔法长城导致<code class="language-plaintext highlighter-rouge">docker</code>无法与它的源进行通信，因此无法完成我的要求。</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Error when pulling at the beginning.</span><span class="w">
+
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">pull</span><span class="w"> </span><span class="nx">ubuntu</span><span class="w">
+
+</span><span class="cm">&lt;# Meet the error message:
+Using default tag: latest
+Error response from daemon: Get "https://registry-1.docker.io/v2/": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+#&gt;</span><span class="w">
+</span></code></pre></div></div>
+
+<p>为了解决这个问题，我尝试增加墙内 registry-mirrors，在增加了以下 4 个站点时这个故障再没有发生。很奇怪的事情是在单独添加某个站点时，都没有解决该故障。这可能是由于 docker 的注册机制有点奇怪，某个神奇的机制导致这些站点产生了某种联动，从而克服了某个问题。本着<strong>代码能跑就不要修的原则</strong>，我决定单纯地记住它，并尝试使用它解决类似问题。</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Docker info with registry-mirrors</span><span class="w">
+
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">info</span><span class="w">
+
+</span><span class="cm">&lt;# Docker info with registry-mirrors
+Docker Root Dir: /var/lib/docker
+Debug Mode: false
+Experimental: false
+Insecure Registries:
+	127.0.0.0/8
+Registry Mirrors:
+	https://cr.console.aliyun.com/
+	https://docker.m.daocloud.io/
+	https://public.ecr.aws/
+	https://dockerhub.timeweb.cloud/
+Live Restore Enabled: false
+#&gt;</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="镜像">镜像</h2>
+
+<p>此时我拉取了<code class="language-plaintext highlighter-rouge">centos</code>镜像，所谓镜像（image）是计算机操作系统的术语，我对它有两种理解</p>
+
+<ol>
+  <li>从原理上讲它是一个操作系统的初始状态，这个状态是只读的，包含必要的引导和驱动程序。</li>
+  <li>从直观上讲，我将它理解成一张刻有操作系统的“光盘”，可以用它从头安装一个操作系统。</li>
+</ol>
+
+<p>也就是说，我的<code class="language-plaintext highlighter-rouge">docker</code>里现在有了一张<code class="language-plaintext highlighter-rouge">centos</code>的安装盘。从逻辑上讲，现在应该继续进行<code class="language-plaintext highlighter-rouge">search</code>、<code class="language-plaintext highlighter-rouge">hub</code>和<code class="language-plaintext highlighter-rouge">push</code>的相关操作，但由于魔法长城的存在这条路行不通，所以还是老老实实搞<code class="language-plaintext highlighter-rouge">local</code>吧。</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Check docker images</span><span class="w">
+</span><span class="c"># REPOSITORY   TAG       IMAGE ID       CREATED       SIZE</span><span class="w">
+</span><span class="c"># centos       latest    5d0da3dc9764   3 years ago   231MB</span><span class="w">
+</span><span class="err">$</span><span class="w"> </span><span class="n">docker</span><span class="w"> </span><span class="nx">images</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%201.png" alt="image.png" /></p>
+
+<h2 id="容器">容器</h2>
+
+<p>所谓容器（container）就是让操作系统跑起来的地方。下面是启动简陋的<code class="language-plaintext highlighter-rouge">centos bash tty</code>交互环境。</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Run docker with centos with bash tty</span><span class="w">
+</span><span class="c"># Usage:  docker run [OPTIONS] IMAGE [COMMAND] [ARG...]</span><span class="w">
+</span><span class="c"># -i, --interactive                      Keep STDIN open even if not attached</span><span class="w">
+</span><span class="c"># -t, --tty                              Allocate a pseudo-TTY</span><span class="w">
+</span><span class="c">#     --name string                      Assign a name to the container</span><span class="w">
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">run</span><span class="w"> </span><span class="nt">-it</span><span class="w"> </span><span class="nt">--name</span><span class="w"> </span><span class="nx">container-1</span><span class="w"> </span><span class="nx">centos:latest</span><span class="w"> </span><span class="nx">/bin/bash</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%202.png" alt="image.png" /></p>
+
+<p>接下来是启动（<code class="language-plaintext highlighter-rouge">start</code>）并接入（<code class="language-plaintext highlighter-rouge">attach</code>）已有的窗口。（这里由于<code class="language-plaintext highlighter-rouge">centos</code>过于不好用，因此我新加入了<code class="language-plaintext highlighter-rouge">ubuntu</code>镜像，命名为<code class="language-plaintext highlighter-rouge">container-2</code>）</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Start and attach into existing container</span><span class="w">
+
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">start</span><span class="w"> </span><span class="nx">container-2</span><span class="w">
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">attach</span><span class="w"> </span><span class="nx">container-2</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%203.png" alt="image.png" /></p>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%204.png" alt="image.png" /></p>
+
+<h3 id="在容器上打洞">在容器上打洞</h3>
+
+<p>显然，让镜像在容器里空跑是不够的，我的目的是让它干活。首先，在<code class="language-plaintext highlighter-rouge">container-2</code>中安装<code class="language-plaintext highlighter-rouge">python</code>，<code class="language-plaintext highlighter-rouge">net-tools</code>等工具，之后以它为基础生成新的镜像，这个镜像就具有了基础工作能力。接下来需要让与外界即宿主机进行通信，常用的解决办法是在容器上预留通信端口，就像在容器上打一个洞，这样有用的东西就能通过这个洞进行交换，这个工作可以分为三步</p>
+
+<ol>
+  <li>从已有容器生成新的镜像（<code class="language-plaintext highlighter-rouge">commit</code>）</li>
+  <li>将新镜像装在新容器中，新容器预留通信端口（<code class="language-plaintext highlighter-rouge">run -p</code>）</li>
+  <li>测试与镜像的通信</li>
+</ol>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Example of port the container</span><span class="w">
+
+</span><span class="c"># 1. new image</span><span class="w">
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">commit</span><span class="w"> </span><span class="nx">container-2</span><span class="w"> </span><span class="nx">ubuntu01</span><span class="w">
+
+</span><span class="c"># 2. port when containing</span><span class="w">
+</span><span class="c"># run the container with -p A:B this means that it will forward the port A in the host machine to port B inside the container.</span><span class="w">
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">run</span><span class="w"> </span><span class="nt">-it</span><span class="w"> </span><span class="nt">-p</span><span class="w"> </span><span class="nx">8000:8000</span><span class="w"> </span><span class="nx">ubuntu01:latest</span><span class="w"> </span><span class="nx">/bin/bash</span><span class="w">
+
+</span><span class="c"># 3. visit localhost:8000</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%205.png" alt="image.png" /></p>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%206.png" alt="image.png" /></p>
+
+<h3 id="端口映射顺序">端口映射顺序</h3>
+
+<p>为了说明端口映射的顺序，我建立了一个新的样例。简单来说它是站在主机的立场上看镜像，遵循这样的语序，即将主机（<code class="language-plaintext highlighter-rouge">localhost</code>）端口映射于镜像端口上，即<code class="language-plaintext highlighter-rouge">A</code>代表主机侧的端口号，<code class="language-plaintext highlighter-rouge">B</code>代表镜像侧的端口号。</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Port position example</span><span class="w">
+
+</span><span class="c"># Run the container with -p A:B this means that it will forward the port A in the host machine to port B inside the container.</span><span class="w">
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">run</span><span class="w"> </span><span class="nt">-it</span><span class="w"> </span><span class="nt">-p</span><span class="w"> </span><span class="nx">8000:8001</span><span class="w"> </span><span class="nx">ubuntu01:latest</span><span class="w"> </span><span class="nx">/bin/bash</span><span class="w">
+
+</span><span class="c"># Start http server in bash</span><span class="w">
+</span><span class="c"># $ python3 -m http.server 8001</span><span class="w">
+
+</span><span class="c"># Simulate the web access</span><span class="w">
+</span><span class="n">wget</span><span class="w"> </span><span class="nx">http://localhost:8000</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%207.png" alt="image.png" /></p>]]></content><author><name>listenzcc</name></author><category term="IT" /><category term="Docker" /><summary type="html"><![CDATA[按道理说docker是一种常见的技术，但由于魔法长城和版本更新的存在，这个东西并没有想象中那么好用。本文对我在Win11机器上安装和使用docker时遇到的有意思的事情进行记录，留作日后避坑之用。 [toc] 安装 安装docker非常简单，只需要在他们的官网下载和安装最新的安装包即可。但拉取centos镜像时我立即遇到一个奇怪的问题，那就是它试图读取某个不存在的目录。我尝试了stackoverflow上的解决方案，思路是将docker切换到windows支持的模式，而不是留在linux模式。虽然这个方法很有道理，但并没有解决我的问题。 # Error message when pull or search centos &lt;# Possible solution (Not working in my case): $ 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchDaemon Url: https://stackoverflow.com/questions/40459280/docker-cannot-start-on-windows #&gt; # Expect: error during connect: Post "http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.47/images/create?fromImage=centos&amp;tag=latest": open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified. docker pull centos # How to switch docker engine between windows and linux # Switch docker to window engine 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchDaemon # Switch docker to linux engine 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchLinuxEngine 接下来我注意到了另一个事情，那就是docker的新特性，即支持wsl2（我没有继续查证这是从哪个版本开始的）的运行模式，我在安装时也确实勾选了这个选项。顺着这个思路，我开始检查我的wsl2版本。不出意料的，我的机器这时不仅没有安装它，甚至没有为它开启必要的windows features。在我解决了wsl2的问题后，之前的error就没再出现过，于是我想这两个步骤对于 docker 的安装来说都是必要的。 Docker: Accelerated Container Application Development 国内源（registry-mirrors） 当我按照手册进行镜像拉取时，我立即遇到了一个奇怪的故障，该故障的成因是魔法长城导致docker无法与它的源进行通信，因此无法完成我的要求。 # Error when pulling at the beginning. docker pull ubuntu &lt;# Meet the error message: Using default tag: latest Error response from daemon: Get "https://registry-1.docker.io/v2/": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers) #&gt; 为了解决这个问题，我尝试增加墙内 registry-mirrors，在增加了以下 4 个站点时这个故障再没有发生。很奇怪的事情是在单独添加某个站点时，都没有解决该故障。这可能是由于 docker 的注册机制有点奇怪，某个神奇的机制导致这些站点产生了某种联动，从而克服了某个问题。本着代码能跑就不要修的原则，我决定单纯地记住它，并尝试使用它解决类似问题。 # Docker info with registry-mirrors docker info &lt;# Docker info with registry-mirrors Docker Root Dir: /var/lib/docker Debug Mode: false Experimental: false Insecure Registries: 127.0.0.0/8 Registry Mirrors: https://cr.console.aliyun.com/ https://docker.m.daocloud.io/ https://public.ecr.aws/ https://dockerhub.timeweb.cloud/ Live Restore Enabled: false #&gt; 镜像 此时我拉取了centos镜像，所谓镜像（image）是计算机操作系统的术语，我对它有两种理解 从原理上讲它是一个操作系统的初始状态，这个状态是只读的，包含必要的引导和驱动程序。 从直观上讲，我将它理解成一张刻有操作系统的“光盘”，可以用它从头安装一个操作系统。 也就是说，我的docker里现在有了一张centos的安装盘。从逻辑上讲，现在应该继续进行search、hub和push的相关操作，但由于魔法长城的存在这条路行不通，所以还是老老实实搞local吧。 # Check docker images # REPOSITORY TAG IMAGE ID CREATED SIZE # centos latest 5d0da3dc9764 3 years ago 231MB $ docker images 容器 所谓容器（container）就是让操作系统跑起来的地方。下面是启动简陋的centos bash tty交互环境。 # Run docker with centos with bash tty # Usage: docker run [OPTIONS] IMAGE [COMMAND] [ARG...] # -i, --interactive Keep STDIN open even if not attached # -t, --tty Allocate a pseudo-TTY # --name string Assign a name to the container docker run -it --name container-1 centos:latest /bin/bash 接下来是启动（start）并接入（attach）已有的窗口。（这里由于centos过于不好用，因此我新加入了ubuntu镜像，命名为container-2） # Start and attach into existing container docker start container-2 docker attach container-2 在容器上打洞 显然，让镜像在容器里空跑是不够的，我的目的是让它干活。首先，在container-2中安装python，net-tools等工具，之后以它为基础生成新的镜像，这个镜像就具有了基础工作能力。接下来需要让与外界即宿主机进行通信，常用的解决办法是在容器上预留通信端口，就像在容器上打一个洞，这样有用的东西就能通过这个洞进行交换，这个工作可以分为三步 从已有容器生成新的镜像（commit） 将新镜像装在新容器中，新容器预留通信端口（run -p） 测试与镜像的通信 # Example of port the container # 1. new image docker commit container-2 ubuntu01 # 2. port when containing # run the container with -p A:B this means that it will forward the port A in the host machine to port B inside the container. docker run -it -p 8000:8000 ubuntu01:latest /bin/bash # 3. visit localhost:8000 端口映射顺序 为了说明端口映射的顺序，我建立了一个新的样例。简单来说它是站在主机的立场上看镜像，遵循这样的语序，即将主机（localhost）端口映射于镜像端口上，即A代表主机侧的端口号，B代表镜像侧的端口号。 # Port position example # Run the container with -p A:B this means that it will forward the port A in the host machine to port B inside the container. docker run -it -p 8000:8001 ubuntu01:latest /bin/bash # Start http server in bash # $ python3 -m http.server 8001 # Simulate the web access wget http://localhost:8000]]></summary></entry><entry><title type="html">Boltzmann distribution</title><link href="/book/boltzmanndistribution/entropy/2024/10/21/boltzmann-distribution.html" rel="alternate" type="text/html" title="Boltzmann distribution" /><published>2024-10-21T00:00:00+00:00</published><updated>2024-10-21T00:00:00+00:00</updated><id>/book/boltzmanndistribution/entropy/2024/10/21/boltzmann-distribution</id><content type="html" xml:base="/book/boltzmanndistribution/entropy/2024/10/21/boltzmann-distribution.html"><![CDATA[<p>平均能量约束下，使熵达到极大值的分布是<code class="language-plaintext highlighter-rouge">Boltzmann</code>分布。
+这个结论非常有意思，因此本文将其证明简要地记录下来。</p>
+
+<p>[toc]</p>
+
+<h2 id="概率与信息熵">概率与信息熵</h2>
+
+<p>假设系统中包含大量元素，每个元素处于某个状态$i$，状态服从概率分布$p_i$。因此系统的信息熵为</p>
+
+\[H = -\sum_i^N p_i \log{p_i}\]
+
+<h2 id="约束条件">约束条件</h2>
+
+<p>考虑任意可测函数$f(\varepsilon_i)$，它在全部状态下都有良好的性质，满足</p>
+
+\[\sum_i^N p_i f(\varepsilon_i) = \text{Const.}\]
+
+<p>其中，$\varepsilon_i$代表该状态下的状态函数。利用爱因斯坦求和约定（即上下标的$i$取遍全部值并求和），上式可以简写为，</p>
+
+\[p_if^i = \sum_i^N p_i f(\varepsilon_i)\]
+
+<p>这样的函数可以有多个，简记为</p>
+
+\[\begin{cases}
+c_1 = p_i f_1^i\\
+c_2 = p_i f_2^i\\
+\dots \\
+c_m = p_i f_m^i
+\end{cases}\]
+
+<h2 id="求极大熵">求极大熵</h2>
+
+<p>采用拉格朗日法求熵的极值，构造拉格朗日函数</p>
+
+\[L = H + \lambda^j \cdot (p_i f_j^i-c_j)\]
+
+<p>展开得</p>
+
+\[\tag{1} L = -\sum_i^N p_i \log{p_i}  +\lambda^j \cdot (p_i f_j^i-c_j)\]
+
+<p>对任意$p_i$求偏导，得</p>
+
+\[\frac{\partial}{\partial p_i}L = -\log{p_i} - 1 + \lambda^j f_j^i\]
+
+<p>令其值为$\frac{\partial}{\partial p_i}L  = 0$，可得</p>
+
+\[\log{p_i}=\lambda^j f_j^i - 1\]
+
+<p>整理得</p>
+
+\[\tag{2} p_i \propto \exp{\lambda^j f_j(\varepsilon_i)}\]
+
+<p>另外，对<code class="language-plaintext highlighter-rouge">(1)</code>式求二阶偏导，得</p>
+
+\[\frac{\partial^2}{\partial p_i^2} L = - \frac{1}{p_i}\]
+
+<p>由于该项恒为负，因此<strong>极值为极大值</strong>。</p>
+
+<h2 id="平均能量约束下的分布">平均能量约束下的分布</h2>
+
+<p>将$\varepsilon_i$视为该状态下的能量值，对平均能量进行约束</p>
+
+\[p^i \varepsilon_i=\text{Const.}\]
+
+<p>此时利用<code class="language-plaintext highlighter-rouge">(2)</code>式可知</p>
+
+\[p_i \propto \exp{\lambda \cdot\varepsilon_i}\]
+
+<p>易见该式为<code class="language-plaintext highlighter-rouge">Boltzmann</code>分布，即平均能量约束下，使熵达到极大值的分布是<code class="language-plaintext highlighter-rouge">Boltzmann</code>分布。</p>
+
+<p><a href="https://en.wikipedia.org/wiki/Boltzmann_distribution">Boltzmann distribution</a></p>]]></content><author><name>listenzcc</name></author><category term="BoltzmannDistribution" /><category term="Entropy" /><summary type="html"><![CDATA[平均能量约束下，使熵达到极大值的分布是Boltzmann分布。 这个结论非常有意思，因此本文将其证明简要地记录下来。 [toc] 概率与信息熵 假设系统中包含大量元素，每个元素处于某个状态$i$，状态服从概率分布$p_i$。因此系统的信息熵为 \[H = -\sum_i^N p_i \log{p_i}\] 约束条件 考虑任意可测函数$f(\varepsilon_i)$，它在全部状态下都有良好的性质，满足 \[\sum_i^N p_i f(\varepsilon_i) = \text{Const.}\] 其中，$\varepsilon_i$代表该状态下的状态函数。利用爱因斯坦求和约定（即上下标的$i$取遍全部值并求和），上式可以简写为， \[p_if^i = \sum_i^N p_i f(\varepsilon_i)\] 这样的函数可以有多个，简记为 \[\begin{cases} c_1 = p_i f_1^i\\ c_2 = p_i f_2^i\\ \dots \\ c_m = p_i f_m^i \end{cases}\] 求极大熵 采用拉格朗日法求熵的极值，构造拉格朗日函数 \[L = H + \lambda^j \cdot (p_i f_j^i-c_j)\] 展开得 \[\tag{1} L = -\sum_i^N p_i \log{p_i} +\lambda^j \cdot (p_i f_j^i-c_j)\] 对任意$p_i$求偏导，得 \[\frac{\partial}{\partial p_i}L = -\log{p_i} - 1 + \lambda^j f_j^i\] 令其值为$\frac{\partial}{\partial p_i}L = 0$，可得 \[\log{p_i}=\lambda^j f_j^i - 1\] 整理得 \[\tag{2} p_i \propto \exp{\lambda^j f_j(\varepsilon_i)}\] 另外，对(1)式求二阶偏导，得 \[\frac{\partial^2}{\partial p_i^2} L = - \frac{1}{p_i}\] 由于该项恒为负，因此极值为极大值。 平均能量约束下的分布 将$\varepsilon_i$视为该状态下的能量值，对平均能量进行约束 \[p^i \varepsilon_i=\text{Const.}\] 此时利用(2)式可知 \[p_i \propto \exp{\lambda \cdot\varepsilon_i}\] 易见该式为Boltzmann分布，即平均能量约束下，使熵达到极大值的分布是Boltzmann分布。 Boltzmann distribution]]></summary></entry><entry><title type="html">Entropy explains n-doors problem</title><link href="/book/entropy/2024/10/13/n-doors-problem-with-entropy.html" rel="alternate" type="text/html" title="Entropy explains n-doors problem" /><published>2024-10-13T00:00:00+00:00</published><updated>2024-10-13T00:00:00+00:00</updated><id>/book/entropy/2024/10/13/n-doors-problem-with-entropy</id><content type="html" xml:base="/book/entropy/2024/10/13/n-doors-problem-with-entropy.html"><![CDATA[<p>这是一个思想实验（或者说是游戏），游戏有 N 扇门，其中某一扇是正确的门。游戏有玩家和主持人参与，主持人知道正确的门，玩家的任务是找到正确的门。游戏进行三轮，第一轮由玩家选择一扇门，第二轮主持人在没有选择的 N-1 扇门中打开 N-2 扇确定不是正确的门，第三轮由玩家选择是否更换自己的选择，即选择没有被主持人打开的那扇门。</p>
+
+<p>对于这个实验的解释众说纷纭，我在这里提供一个信息量的视角。结果似乎说明，如果玩家选择更换的话，他取胜的概率会增加，N 越大胜率增加的就越多。</p>
+
+<p>[toc]</p>
+
+<h2 id="玩家视角">玩家视角</h2>
+
+<p>玩家面对的初始问题记为<code class="language-plaintext highlighter-rouge">问题1</code>，面前有$n$扇门，有且仅有一扇门是正确的门，由于他不知道门后的任何信息，因此每一扇门为正确门的概率相同均为</p>
+
+\[p_0 = \frac{1}{n}\]
+
+<p>易见，<code class="language-plaintext highlighter-rouge">问题1</code>的信息熵为</p>
+
+\[H_1 = n \cdot (-p_0 \log{p_0}) = \log{n}\]
+
+<p>在做出选择后，他的问题转换成了<code class="language-plaintext highlighter-rouge">问题2</code>，将$n$扇门分成两组，<code class="language-plaintext highlighter-rouge">组A</code>是选择的门，<code class="language-plaintext highlighter-rouge">组B</code>是其他$n-1$扇门。易见，正确门在<code class="language-plaintext highlighter-rouge">组A</code>和<code class="language-plaintext highlighter-rouge">组B</code>中的概率分别为</p>
+
+\[\begin{cases}
+p_A = \frac{1}{n}\\
+p_B = \frac{n-1}{n}
+\end{cases}\]
+
+<p>此时<code class="language-plaintext highlighter-rouge">问题2</code>的信息熵为</p>
+
+\[H_2 = \frac{1}{n}\log{n}+\frac{n-1}{n}\log{\frac{n}{n-1}}\]
+
+<h2 id="主持人视角">主持人视角</h2>
+
+<p>主持人的角色是在玩家做出决策后介入的，此时的局势有两种可能情况</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">事件A</code>发生，即正确的门在<code class="language-plaintext highlighter-rouge">组A</code>中；</li>
+  <li><code class="language-plaintext highlighter-rouge">事件B</code>发生，即正确的门在<code class="language-plaintext highlighter-rouge">组B</code>中。</li>
+</ul>
+
+<p>当<code class="language-plaintext highlighter-rouge">事件A</code>发生时，主持人可以任意选择$n-2$扇门打开，但这些操作无法提供任何信息，因为每扇门都不是正确的门，即</p>
+
+\[H_a=0\]
+
+<p>当<code class="language-plaintext highlighter-rouge">事件B</code>发生时，主持人要小心地避开正确的门，因此他实际上提供了，或者说他的操作需要他具有的信息量为</p>
+
+\[H_b = \log{n-1}\]
+
+<p>综合起来可以得到主持人提供的信息量为</p>
+
+\[H_B = \frac{n-1}{n}\log{n-1}\]
+
+<h2 id="问题的转化">问题的转化</h2>
+
+<p>注意到恒等关系</p>
+
+\[H_1 = H_2 + H_B\]
+
+<p>即主持人的操作提供的信息量能够将<code class="language-plaintext highlighter-rouge">问题1</code>转换为<code class="language-plaintext highlighter-rouge">问题2</code>，也就是说只要玩家在主持人操作后对自己的决策进行修改，那么他选择到正确门的概率就得到了提升</p>
+
+\[p_A \rightarrow p_B\]]]></content><author><name>listenzcc</name></author><category term="Entropy" /><summary type="html"><![CDATA[这是一个思想实验（或者说是游戏），游戏有 N 扇门，其中某一扇是正确的门。游戏有玩家和主持人参与，主持人知道正确的门，玩家的任务是找到正确的门。游戏进行三轮，第一轮由玩家选择一扇门，第二轮主持人在没有选择的 N-1 扇门中打开 N-2 扇确定不是正确的门，第三轮由玩家选择是否更换自己的选择，即选择没有被主持人打开的那扇门。 对于这个实验的解释众说纷纭，我在这里提供一个信息量的视角。结果似乎说明，如果玩家选择更换的话，他取胜的概率会增加，N 越大胜率增加的就越多。 [toc] 玩家视角 玩家面对的初始问题记为问题1，面前有$n$扇门，有且仅有一扇门是正确的门，由于他不知道门后的任何信息，因此每一扇门为正确门的概率相同均为 \[p_0 = \frac{1}{n}\] 易见，问题1的信息熵为 \[H_1 = n \cdot (-p_0 \log{p_0}) = \log{n}\] 在做出选择后，他的问题转换成了问题2，将$n$扇门分成两组，组A是选择的门，组B是其他$n-1$扇门。易见，正确门在组A和组B中的概率分别为 \[\begin{cases} p_A = \frac{1}{n}\\ p_B = \frac{n-1}{n} \end{cases}\] 此时问题2的信息熵为 \[H_2 = \frac{1}{n}\log{n}+\frac{n-1}{n}\log{\frac{n}{n-1}}\] 主持人视角 主持人的角色是在玩家做出决策后介入的，此时的局势有两种可能情况 事件A发生，即正确的门在组A中； 事件B发生，即正确的门在组B中。 当事件A发生时，主持人可以任意选择$n-2$扇门打开，但这些操作无法提供任何信息，因为每扇门都不是正确的门，即 \[H_a=0\] 当事件B发生时，主持人要小心地避开正确的门，因此他实际上提供了，或者说他的操作需要他具有的信息量为 \[H_b = \log{n-1}\] 综合起来可以得到主持人提供的信息量为 \[H_B = \frac{n-1}{n}\log{n-1}\] 问题的转化 注意到恒等关系 \[H_1 = H_2 + H_B\] 即主持人的操作提供的信息量能够将问题1转换为问题2，也就是说只要玩家在主持人操作后对自己的决策进行修改，那么他选择到正确门的概率就得到了提升 \[p_A \rightarrow p_B\]]]></summary></entry><entry><title type="html">Welcome to Jekyll!</title><link href="/book/jekyll/update/2024/10/10/welcome-to-jekyll.html" rel="alternate" type="text/html" title="Welcome to Jekyll!" /><published>2024-10-10T07:54:48+00:00</published><updated>2024-10-10T07:54:48+00:00</updated><id>/book/jekyll/update/2024/10/10/welcome-to-jekyll</id><content type="html" xml:base="/book/jekyll/update/2024/10/10/welcome-to-jekyll.html"><![CDATA[<p>You’ll find this post in your <code class="language-plaintext highlighter-rouge">_posts</code> directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run <code class="language-plaintext highlighter-rouge">jekyll serve</code>, which launches a web server and auto-regenerates your site when a file is updated.</p>
+
+<p>Jekyll requires blog post files to be named according to the following format:</p>
+
+<p><code class="language-plaintext highlighter-rouge">YEAR-MONTH-DAY-title.MARKUP</code></p>
+
+<p>Where <code class="language-plaintext highlighter-rouge">YEAR</code> is a four-digit number, <code class="language-plaintext highlighter-rouge">MONTH</code> and <code class="language-plaintext highlighter-rouge">DAY</code> are both two-digit numbers, and <code class="language-plaintext highlighter-rouge">MARKUP</code> is the file extension representing the format used in the file. After that, include the necessary front matter. Take a look at the source for this post to get an idea about how it works.</p>
+
+<p>Jekyll also offers powerful support for code snippets:</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+  <span class="nb">puts</span> <span class="s2">"Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">end</span>
+<span class="n">print_hi</span><span class="p">(</span><span class="s1">'Tom'</span><span class="p">)</span>
+<span class="c1">#=&gt; prints 'Hi, Tom' to STDOUT.</span></code></pre></figure>
+
+<p>Check out the <a href="https://jekyllrb.com/docs/home">Jekyll docs</a> for more info on how to get the most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/jekyll/jekyll">Jekyll’s GitHub repo</a>. If you have questions, you can ask them on <a href="https://talk.jekyllrb.com/">Jekyll Talk</a>.</p>]]></content><author><name>listenzcc</name></author><category term="jekyll" /><category term="update" /><summary type="html"><![CDATA[You’ll find this post in your _posts directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run jekyll serve, which launches a web server and auto-regenerates your site when a file is updated. Jekyll requires blog post files to be named according to the following format: YEAR-MONTH-DAY-title.MARKUP Where YEAR is a four-digit number, MONTH and DAY are both two-digit numbers, and MARKUP is the file extension representing the format used in the file. After that, include the necessary front matter. Take a look at the source for this post to get an idea about how it works. Jekyll also offers powerful support for code snippets: def print_hi(name) puts "Hi, #{name}" end print_hi('Tom') #=&gt; prints 'Hi, Tom' to STDOUT. Check out the Jekyll docs for more info on how to get the most out of Jekyll. File all bugs/feature requests at Jekyll’s GitHub repo. If you have questions, you can ask them on Jekyll Talk.]]></summary></entry><entry><title type="html">Book manual</title><link href="/book/intro/markdown/jekyll/minimalmistakes/2024/10/10/startup.html" rel="alternate" type="text/html" title="Book manual" /><published>2024-10-10T00:00:00+00:00</published><updated>2024-10-10T00:00:00+00:00</updated><id>/book/intro/markdown/jekyll/minimalmistakes/2024/10/10/startup</id><content type="html" xml:base="/book/intro/markdown/jekyll/minimalmistakes/2024/10/10/startup.html"><![CDATA[<p>The top level things about writing with markdown, serving with Jekyll, and publishing with github page.</p>
+
+<p>[toc]</p>
+
+<h2 id="cold-startup">Cold startup</h2>
+
+<p>In the root directory, it is necessary to create the <a href="">./docs</a> directory to start the project from the ground.
+Since the github page supports the page in the <a href="">./docs</a>.
+The <a href="">./init-jekyll-site.ps1</a> script will create the directory, after that the following is required: <sup id="fnref:jekyll" role="doc-noteref"><a href="#fn:jekyll" class="footnote" rel="footnote">1</a></sup></p>
+
+<ul>
+  <li>Edit the <a href="">./docs/_config.yml</a> file for jekyll configuration.</li>
+  <li>Edit the <a href="">./docs/Gemfile</a> file for ruby configuration.</li>
+  <li>Change directory (cd) to the <a href="">./docs</a>.</li>
+  <li>Run <code class="language-plaintext highlighter-rouge">bundle install</code> to install the ruby.</li>
+  <li>Run <code class="language-plaintext highlighter-rouge">bundle exec jekyll serve --trace</code> to start the jekyll serve</li>
+  <li>BTW, I have put my default configuration files into the <a href="">./default</a> directory.</li>
+</ul>
+
+<h2 id="warm-startup">Warm startup</h2>
+
+<p>Run <code class="language-plaintext highlighter-rouge">bundle exec jekyll serve --trace</code> to start the jekyll serve.
+The documents are in the <a href="">_posts</a> directory (see <strong>Markdown document</strong> for detail).
+The script will automatically update the <a href="">_site</a> directory, where the static files are placed.</p>
+
+<p>It should be noticed that the script has to be restarted if you have the <a href="">_config.yml</a> or <a href="">Gemfile</a> file changed, or the changing will not be applied.</p>
+
+<h2 id="markdown-document">Markdown document</h2>
+
+<p>The .md or .markdown files inside the <a href="">_posts</a> directory are the documents.
+It is no matter how depth they are, but what really matter is their names.
+The good names are in the format of</p>
+
+<blockquote>
+  <p>YYYY-MM-DD-document-title.md</p>
+</blockquote>
+
+<p>Only the regular file name is supported by the Jekyll.</p>
+
+<h3 id="front-matter">Front matter</h3>
+
+<p>The document’s compile header is also required by the Jekyll.
+For example, the header of the document is like this:</p>
+
+<div class="language-md highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- Example of YML compile header (front matter) --&gt;</span>
+<span class="p">
+---
+</span>
+layout: single
+title: Startup for the writing
+date: 2024-10-10
+author: listenzcc
+categories: Intro Markdown Jekyll MinimalMistakes
+toc: true
+<span class="p">
+---
+</span>
+The top level things about writing with markdown, serving with Jekyll, and publishing with github page.
+</code></pre></div></div>
+
+<p>It translates the variables to the Jekyll when compiling into .html files.
+The dashes wraps the header content and the paragraph following is the <strong>excerpt</strong>.
+The <code class="language-plaintext highlighter-rouge">layout</code> variable controls which <code class="language-plaintext highlighter-rouge">_layout</code> template is used by the MinimalMistakes <sup id="fnref:minimal-mistakes" role="doc-noteref"><a href="#fn:minimal-mistakes" class="footnote" rel="footnote">2</a></sup> to render the document.</p>
+
+<h2 id="features-linking-md-and-html">Features linking md and html</h2>
+
+<p>The Jekyll render the .md files into .html static files.
+Precisely, the .md files in <a href="">_posts</a> is rendered into .html files in <a href="">_site</a> by the Jekyll.
+During the process, the MinimalMistakes controls the output theme.
+Moreover, it requires .md file, Jekyll and MinimalMistakes configures to make the features work well.</p>
+
+<p>BTW, the MinimalMistakes is installed in the directory like <a href="">gem/ruby/3.3.0/gems/minimal-mistakes-jekyll-4.26.2</a> in my case.</p>
+
+<h3 id="table-of-contents">Table of contents</h3>
+
+<p>The toc feature supporting is configured in the <a href="">_config.yml</a> file</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Use jekyll-toc plugin</span>
+<span class="na">plugins</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">jekyll-toc</span>
+</code></pre></div></div>
+
+<p>It also requires the compile header declaration in the .md file, to use the toc on the page.</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># The toc option</span>
+
+<span class="c1"># YML front matter: Put the toc on the page</span>
+<span class="c1"># It is specified to the document.</span>
+<span class="na">toc</span><span class="pi">:</span> <span class="no">true</span>
+
+<span class="c1"># It also works on the _config.yml file as the default option</span>
+<span class="na">defaults</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">scope</span><span class="pi">:</span>
+      <span class="na">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+      <span class="na">type</span><span class="pi">:</span> <span class="s">posts</span>
+    <span class="na">values</span><span class="pi">:</span>
+      <span class="na">layout</span><span class="pi">:</span> <span class="s">single</span>
+      <span class="na">author_profile</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">share</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">related</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">mathjax</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">toc</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">toc_sticky</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">toc_label</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Table</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">contents"</span>
+      <span class="na">toc_icon</span><span class="pi">:</span> <span class="s2">"</span><span class="s">bars"</span> <span class="c1"># corresponding Font Awesome icon name (without fa prefix)</span>
+      <span class="na">breadcrumbs</span><span class="pi">:</span> <span class="no">true</span> <span class="c1"># disabled by default</span>
+</code></pre></div></div>
+
+<p>The icons can be found in the fontawesome. <sup id="fnref:fontawesome-icons" role="doc-noteref"><a href="#fn:fontawesome-icons" class="footnote" rel="footnote">3</a></sup></p>
+
+<p><img src="/assets/toc-example.png" alt="toc-example" title="toc-example" /></p>
+
+<h3 id="author-profile">Author profile</h3>
+
+<p>The <code class="language-plaintext highlighter-rouge">author_profile: true</code> option adds the author profile as the left sidebar.
+It requires the <a href="">_data/authors.yml</a> contains the author information. <sup id="fnref:author-profile" role="doc-noteref"><a href="#fn:author-profile" class="footnote" rel="footnote">4</a></sup></p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">listenzcc</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">listenzcc</span>
+  <span class="na">avatar</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/assets/profile/bio-photo.jpg"</span>
+  <span class="na">bio</span><span class="pi">:</span> <span class="s2">"</span><span class="s">I</span><span class="nv"> </span><span class="s">am</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">programmer."</span>
+  <span class="na">location</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Somewhere"</span>
+  <span class="na">links</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">label</span><span class="pi">:</span> <span class="s2">"</span><span class="s">GitHub"</span>
+      <span class="na">icon</span><span class="pi">:</span> <span class="s2">"</span><span class="s">fab</span><span class="nv"> </span><span class="s">fa-fw</span><span class="nv"> </span><span class="s">fa-github"</span>
+      <span class="na">url</span><span class="pi">:</span> <span class="s2">"</span><span class="s">https://github.com/listenzcc"</span>
+    <span class="pi">-</span> <span class="na">label</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Made</span><span class="nv"> </span><span class="s">Mistakes"</span>
+      <span class="na">icon</span><span class="pi">:</span> <span class="s2">"</span><span class="s">fas</span><span class="nv"> </span><span class="s">fa-fw</span><span class="nv"> </span><span class="s">fa-link"</span>
+      <span class="na">url</span><span class="pi">:</span> <span class="s2">"</span><span class="s">https://mademistakes.com"</span>
+</code></pre></div></div>
+
+<h3 id="image-url">Image url</h3>
+
+<p>The image asset is an issue to support not only editing but also publishing.
+Specifically, the image in the .md file is like</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- The difference between .md and .html file --&gt;</span>
+
+<span class="c">&lt;!--
+Image block in the .md file
+The assets/ folder is on the root path of the project
+--&gt;</span>
+![toc-example](/assets/toc-example.png "toc-example")
+
+<span class="c">&lt;!--
+Image tag in the .html file
+The site's url is http://127.0.0.1:4000
+The site's baseurl is '/book'
+--&gt;</span>
+<span class="nt">&lt;img</span>
+  <span class="na">src=</span><span class="s">"http://127.0.0.1:4000/book/assets/toc-example.png"</span>
+  <span class="na">alt=</span><span class="s">"toc-example"</span>
+  <span class="na">title=</span><span class="s">"toc-example"</span>
+  <span class="na">style=</span><span class="s">"border: solid red;"</span>
+<span class="nt">/&gt;</span>
+</code></pre></div></div>
+
+<p>It turns that the .html file needs its image under <code class="language-plaintext highlighter-rouge">baseurl</code> <sup id="fnref:base-url" role="doc-noteref"><a href="#fn:base-url" class="footnote" rel="footnote">5</a></sup> but the .md file preview doesn’t need it.
+As a result, the <code class="language-plaintext highlighter-rouge">baseurl</code> should be automatically added to the <code class="language-plaintext highlighter-rouge">img.src</code> when rendering.</p>
+
+<p>I haven’t find decent way to do that, so I override the <a href="">_includes/after-content.html</a> file.
+It is the javascript script doing the converting job after the <code class="language-plaintext highlighter-rouge">content</code> is loaded.
+The solution is specific to the MinimalMistakes, since it uses the <a href="">_includes/after-content.html</a>.
+BTW, to make the image looks better, I also border it with red color.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Site variable</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>url</td>
+      <td>A site’s full URL including protocol, domain, and port (if applicable).</td>
+    </tr>
+    <tr>
+      <td>baseurl</td>
+      <td>Name of sub-directory the site is served from e.g., /blog.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><img src="/assets/url-example.jpg" alt="url-example" title="url-example" /></p>
+
+<h3 id="code-syntax">Code syntax</h3>
+
+<p>The code block detecting and syntax highlighting is configured in the <a href="">_config.yml</a> file.
+It also toggles whether to display the button of copy code.</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Code syntax configuration</span>
+<span class="c1"># rouge highlighter support</span>
+<span class="na">highlighter</span><span class="pi">:</span> <span class="s">rouge</span>
+
+<span class="c1"># Display copy code button</span>
+<span class="na">enable_copy_code_button</span><span class="pi">:</span> <span class="no">true</span>
+
+<span class="c1"># syntax highlight</span>
+<span class="na">kramdown</span><span class="pi">:</span>
+  <span class="na">input</span><span class="pi">:</span> <span class="s">GFM</span>
+  <span class="na">syntax_highlighter</span><span class="pi">:</span> <span class="s">rouge</span>
+  <span class="na">syntax_highlighter_opts</span><span class="pi">:</span>
+    <span class="na">css_class</span><span class="pi">:</span> <span class="s">highlight</span>
+    <span class="na">default_lang</span><span class="pi">:</span> <span class="s">console</span>
+    <span class="na">span</span><span class="pi">:</span>
+      <span class="na">line_numbers</span><span class="pi">:</span> <span class="no">false</span>
+    <span class="na">block</span><span class="pi">:</span>
+      <span class="na">line_numbers</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">start_line</span><span class="pi">:</span> <span class="m">1</span>
+</code></pre></div></div>
+
+<h3 id="equations">Equations</h3>
+
+<p>Take the equation for example</p>
+
+\[\tag{1.1} e^{j \pi} + 1 = 0\]
+
+<p>Add the math js script to the .html file makes it work, it also requires the <code class="language-plaintext highlighter-rouge">markdown: kramdown</code> in the <a href="">_config.yml</a>.</p>
+
+<p>Also, the jekyll-spaceship<sup id="fnref:jekyll-spaceship" role="doc-noteref"><a href="#fn:jekyll-spaceship" class="footnote" rel="footnote">6</a></sup> solves the inline equation with <code class="language-plaintext highlighter-rouge">$\alpha$</code> syntax, it gives $\alpha$.
+It requires the following setup</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Install jekyll-spaceship</span>
+
+<span class="c1"># Install the gem in Gemfile</span>
+<span class="s">gem 'jekyll-spaceship', group</span><span class="err">:</span> <span class="s">:jekyll_plugins</span>
+
+<span class="c1"># Add plugin in _config.yml</span>
+<span class="na">plugins</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">jekyll-spaceship</span>
+</code></pre></div></div>
+
+<p>It doesn’t require the .html file attached with the Mathjax code.</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!--
+Add the math js script to the .html file.
+It performs the equation rendering.
+
+The markdown equation block is:
+
+$$ \tag{1.1} e^{j \pi} + 1 = 0 $$
+--&gt;</span>
+
+<span class="nt">&lt;script </span><span class="na">src=</span><span class="s">" https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js "</span><span class="nt">&gt;&lt;/script&gt;</span>
+</code></pre></div></div>
+
+<h3 id="navigation-bar">Navigation bar</h3>
+
+<p>The navigation bar is the top bar for user experience improvements.
+I linked the buttons to the pages with functions, they are .md files inside <a href="">_posts/tool page</a>.
+Their layout is set to the type:</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Layout setup for navigation linked pages</span>
+
+<span class="c1"># Searching page</span>
+<span class="na">layout</span><span class="pi">:</span> <span class="s">search</span>
+<span class="na">title</span><span class="pi">:</span> <span class="s">Search page</span>
+<span class="na">permalink</span><span class="pi">:</span> <span class="s">/search/</span>
+<span class="na">excerpt</span><span class="pi">:</span> <span class="s">Built-in page for searching.</span>
+
+<span class="c1"># Sorting by categories page</span>
+<span class="na">layout</span><span class="pi">:</span> <span class="s">categories</span>
+<span class="na">title</span><span class="pi">:</span> <span class="s">Sorted by Categories</span>
+<span class="na">permalink</span><span class="pi">:</span> <span class="s">/categories/</span>
+<span class="na">excerpt</span><span class="pi">:</span> <span class="s">Built-in page for categories view.</span>
+</code></pre></div></div>
+
+<h2 id="jekyll-spaceship">Jekyll spaceship</h2>
+
+<p>The plugin is amazing, but it seems conflicting with other settings.</p>
+
+<h2 id="github-page-compatible">Github page compatible</h2>
+
+<p>The github page needs <code class="language-plaintext highlighter-rouge">remote_theme</code> rather than <code class="language-plaintext highlighter-rouge">theme</code> to compile the website.
+Remember to change it before push to github.</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># ! The Local and Github settings conflict with each other.</span>
+<span class="c1"># Local</span>
+<span class="c1"># theme: minimal-mistakes-jekyll</span>
+<span class="c1"># Github</span>
+<span class="na">remote_theme</span><span class="pi">:</span> <span class="s2">"</span><span class="s">mmistakes/minimal-mistakes"</span>
+</code></pre></div></div>
+
+<p>The <a href="">.github/workflows/jekyll.yml</a> is added to make the github-pages compile the project.
+It also requires the Gemfile in the <code class="language-plaintext highlighter-rouge">root</code> path of the project, so I copy it.
+Moreover, it is needed to reminder that perhaps I have made a mistake to open the access permission too much.</p>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:jekyll" role="doc-endnote">
+      <p><a href="https://jekyllrb.com/">https://jekyllrb.com/</a> <a href="#fnref:jekyll" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:minimal-mistakes" role="doc-endnote">
+      <p><a href="https://mmistakes.github.io/minimal-mistakes/docs/configuration/">https://mmistakes.github.io/minimal-mistakes/docs/configuration/</a> <a href="#fnref:minimal-mistakes" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:fontawesome-icons" role="doc-endnote">
+      <p><a href="https://fontawesome.com/icons">https://fontawesome.com/icons</a> <a href="#fnref:fontawesome-icons" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:author-profile" role="doc-endnote">
+      <p><a href="https://mmistakes.github.io/minimal-mistakes/docs/authors/">https://mmistakes.github.io/minimal-mistakes/docs/authors/</a> <a href="#fnref:author-profile" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:base-url" role="doc-endnote">
+      <p><a href="https://mademistakes.com/mastering-jekyll/site-url-baseurl/">https://mademistakes.com/mastering-jekyll/site-url-baseurl/</a> <a href="#fnref:base-url" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:jekyll-spaceship" role="doc-endnote">
+      <p><a href="https://github.com/jeffreytse/jekyll-spaceship">https://github.com/jeffreytse/jekyll-spaceship</a> <a href="#fnref:jekyll-spaceship" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>]]></content><author><name>listenzcc</name></author><category term="Intro" /><category term="Markdown" /><category term="Jekyll" /><category term="MinimalMistakes" /><summary type="html"><![CDATA[The top level things about writing with markdown, serving with Jekyll, and publishing with github page. [toc] Cold startup In the root directory, it is necessary to create the ./docs directory to start the project from the ground. Since the github page supports the page in the ./docs. The ./init-jekyll-site.ps1 script will create the directory, after that the following is required: 1 Edit the ./docs/_config.yml file for jekyll configuration. Edit the ./docs/Gemfile file for ruby configuration. Change directory (cd) to the ./docs. Run bundle install to install the ruby. Run bundle exec jekyll serve --trace to start the jekyll serve BTW, I have put my default configuration files into the ./default directory. Warm startup Run bundle exec jekyll serve --trace to start the jekyll serve. The documents are in the _posts directory (see Markdown document for detail). The script will automatically update the _site directory, where the static files are placed. It should be noticed that the script has to be restarted if you have the _config.yml or Gemfile file changed, or the changing will not be applied. Markdown document The .md or .markdown files inside the _posts directory are the documents. It is no matter how depth they are, but what really matter is their names. The good names are in the format of YYYY-MM-DD-document-title.md Only the regular file name is supported by the Jekyll. Front matter The document’s compile header is also required by the Jekyll. For example, the header of the document is like this: &lt;!-- Example of YML compile header (front matter) --&gt; --- layout: single title: Startup for the writing date: 2024-10-10 author: listenzcc categories: Intro Markdown Jekyll MinimalMistakes toc: true --- The top level things about writing with markdown, serving with Jekyll, and publishing with github page. It translates the variables to the Jekyll when compiling into .html files. The dashes wraps the header content and the paragraph following is the excerpt. The layout variable controls which _layout template is used by the MinimalMistakes 2 to render the document. Features linking md and html The Jekyll render the .md files into .html static files. Precisely, the .md files in _posts is rendered into .html files in _site by the Jekyll. During the process, the MinimalMistakes controls the output theme. Moreover, it requires .md file, Jekyll and MinimalMistakes configures to make the features work well. BTW, the MinimalMistakes is installed in the directory like gem/ruby/3.3.0/gems/minimal-mistakes-jekyll-4.26.2 in my case. Table of contents The toc feature supporting is configured in the _config.yml file # Use jekyll-toc plugin plugins: - jekyll-toc It also requires the compile header declaration in the .md file, to use the toc on the page. # The toc option # YML front matter: Put the toc on the page # It is specified to the document. toc: true # It also works on the _config.yml file as the default option defaults: - scope: path: "" type: posts values: layout: single author_profile: true share: true related: true mathjax: true toc: true toc_sticky: true toc_label: "Table of contents" toc_icon: "bars" # corresponding Font Awesome icon name (without fa prefix) breadcrumbs: true # disabled by default The icons can be found in the fontawesome. 3 Author profile The author_profile: true option adds the author profile as the left sidebar. It requires the _data/authors.yml contains the author information. 4 listenzcc: name: listenzcc avatar: "/assets/profile/bio-photo.jpg" bio: "I am a programmer." location: "Somewhere" links: - label: "GitHub" icon: "fab fa-fw fa-github" url: "https://github.com/listenzcc" - label: "Made Mistakes" icon: "fas fa-fw fa-link" url: "https://mademistakes.com" Image url The image asset is an issue to support not only editing but also publishing. Specifically, the image in the .md file is like &lt;!-- The difference between .md and .html file --&gt; &lt;!-- Image block in the .md file The assets/ folder is on the root path of the project --&gt; ![toc-example](/assets/toc-example.png "toc-example") &lt;!-- Image tag in the .html file The site's url is http://127.0.0.1:4000 The site's baseurl is '/book' --&gt; &lt;img src="http://127.0.0.1:4000/book/assets/toc-example.png" alt="toc-example" title="toc-example" style="border: solid red;" /&gt; It turns that the .html file needs its image under baseurl 5 but the .md file preview doesn’t need it. As a result, the baseurl should be automatically added to the img.src when rendering. I haven’t find decent way to do that, so I override the _includes/after-content.html file. It is the javascript script doing the converting job after the content is loaded. The solution is specific to the MinimalMistakes, since it uses the _includes/after-content.html. BTW, to make the image looks better, I also border it with red color. Site variable Description url A site’s full URL including protocol, domain, and port (if applicable). baseurl Name of sub-directory the site is served from e.g., /blog. Code syntax The code block detecting and syntax highlighting is configured in the _config.yml file. It also toggles whether to display the button of copy code. # Code syntax configuration # rouge highlighter support highlighter: rouge # Display copy code button enable_copy_code_button: true # syntax highlight kramdown: input: GFM syntax_highlighter: rouge syntax_highlighter_opts: css_class: highlight default_lang: console span: line_numbers: false block: line_numbers: true start_line: 1 Equations Take the equation for example \[\tag{1.1} e^{j \pi} + 1 = 0\] Add the math js script to the .html file makes it work, it also requires the markdown: kramdown in the _config.yml. Also, the jekyll-spaceship6 solves the inline equation with $\alpha$ syntax, it gives $\alpha$. It requires the following setup # Install jekyll-spaceship # Install the gem in Gemfile gem 'jekyll-spaceship', group: :jekyll_plugins # Add plugin in _config.yml plugins: - jekyll-spaceship It doesn’t require the .html file attached with the Mathjax code. &lt;!-- Add the math js script to the .html file. It performs the equation rendering. The markdown equation block is: $$ \tag{1.1} e^{j \pi} + 1 = 0 $$ --&gt; &lt;script src=" https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js "&gt;&lt;/script&gt; Navigation bar The navigation bar is the top bar for user experience improvements. I linked the buttons to the pages with functions, they are .md files inside _posts/tool page. Their layout is set to the type: # Layout setup for navigation linked pages # Searching page layout: search title: Search page permalink: /search/ excerpt: Built-in page for searching. # Sorting by categories page layout: categories title: Sorted by Categories permalink: /categories/ excerpt: Built-in page for categories view. Jekyll spaceship The plugin is amazing, but it seems conflicting with other settings. Github page compatible The github page needs remote_theme rather than theme to compile the website. Remember to change it before push to github. # ! The Local and Github settings conflict with each other. # Local # theme: minimal-mistakes-jekyll # Github remote_theme: "mmistakes/minimal-mistakes" The .github/workflows/jekyll.yml is added to make the github-pages compile the project. It also requires the Gemfile in the root path of the project, so I copy it. Moreover, it is needed to reminder that perhaps I have made a mistake to open the access permission too much. https://jekyllrb.com/ &#8617; https://mmistakes.github.io/minimal-mistakes/docs/configuration/ &#8617; https://fontawesome.com/icons &#8617; https://mmistakes.github.io/minimal-mistakes/docs/authors/ &#8617; https://mademistakes.com/mastering-jekyll/site-url-baseurl/ &#8617; https://github.com/jeffreytse/jekyll-spaceship &#8617;]]></summary></entry><entry><title type="html">Help Center</title><link href="/book/help-center/" rel="alternate" type="text/html" title="Help Center" /><published>2024-09-27T00:00:00+00:00</published><updated>2024-09-27T00:00:00+00:00</updated><id>/book/help-center</id><content type="html" xml:base="/book/help-center/"><![CDATA[<h2 id="jekyll">Jekyll</h2>
+
+<p><a href="https://jekyllrb.com/">https://jekyllrb.com/</a></p>
+
+<h2 id="minimal-mistakes">Minimal Mistakes</h2>
+
+<p><a href="https://mmistakes.github.io/minimal-mistakes/docs/quick-start-guide/">https://mmistakes.github.io/minimal-mistakes/docs/quick-start-guide/</a></p>]]></content><author><name>listenzcc</name></author><summary type="html"><![CDATA[Built-in page for one standing help.]]></summary></entry><entry><title type="html">Search page</title><link href="/book/search/" rel="alternate" type="text/html" title="Search page" /><published>2024-09-27T00:00:00+00:00</published><updated>2024-09-27T00:00:00+00:00</updated><id>/book/search-page</id><content type="html" xml:base="/book/search/"><![CDATA[]]></content><author><name>listenzcc</name></author><summary type="html"><![CDATA[Built-in page for searching.]]></summary></entry><entry><title type="html">Sorted by Categories</title><link href="/book/categories/" rel="alternate" type="text/html" title="Sorted by Categories" /><published>2024-09-27T00:00:00+00:00</published><updated>2024-09-27T00:00:00+00:00</updated><id>/book/sorted-by-categories</id><content type="html" xml:base="/book/categories/"><![CDATA[]]></content><author><name>listenzcc</name></author><summary type="html"><![CDATA[Built-in page for categories view.]]></summary></entry><entry><title type="html">Sorted by Years</title><link href="/book/year-archive/" rel="alternate" type="text/html" title="Sorted by Years" /><published>2024-09-27T00:00:00+00:00</published><updated>2024-09-27T00:00:00+00:00</updated><id>/book/sorted-by-years</id><content type="html" xml:base="/book/year-archive/"><![CDATA[]]></content><author><name>listenzcc</name></author><summary type="html"><![CDATA[Built-in page for year archive view.]]></summary></entry></feed>
