@@ -91,13 +91,13 @@ Consider the summation, each element is
 
 $$\frac{t}{C_t^k} = \frac{k! \cdot (t-k)!}{(t-1)!}$$
 
-Using the Gauss's Hypergeometric Theorem
-
-$$\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}$$
-
 It changes into
 
 $$ \sum_{x=0}^{\infty} \frac{k! \cdot (m-k)! \cdot (m-k+1)_x}{(m-1)! \cdot (m)_x} $$
+
+Using the Gauss's Hypergeometric Theorem
+
+$$\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}$$
 
 Using the property of $(1)_x = x!$, it equals to $c=m, a=1, b=m-k+1$
 
