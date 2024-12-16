@@ -1,0 +1,963 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="/book/feed.xml" rel="self" type="application/atom+xml" /><link href="/book/" rel="alternate" type="text/html" /><updated>2024-12-16T08:43:01+00:00</updated><id>/book/feed.xml</id><title type="html">Listenzcc talks a lot</title><subtitle>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.</subtitle><author><name>listenzcc</name></author><entry><title type="html">二项分布二三事（五）</title><link href="/book/probability/binomial/bayesian/germantank/2024/12/16/german-tank-problem-3.html" rel="alternate" type="text/html" title="二项分布二三事（五）" /><published>2024-12-16T00:00:00+00:00</published><updated>2024-12-16T00:00:00+00:00</updated><id>/book/probability/binomial/bayesian/germantank/2024/12/16/german-tank-problem-3</id><content type="html" xml:base="/book/probability/binomial/bayesian/germantank/2024/12/16/german-tank-problem-3.html"><![CDATA[<p>本文还是对“German tanks problem”的贝叶斯估计问题进行定量求解，完成了它的二阶矩的相关计算，目前的方法还算简单。</p>
+
+<hr />
+
+<p>[toc]</p>
+
+<h2 id="probabilities-dense">Probabilities dense</h2>
+
+<p>Using the notions:</p>
+
+<ul>
+  <li>$t$, the total number which is unknown.</li>
+  <li>$m$, the obtained maximum number.</li>
+  <li>$k$, the count of the observations.</li>
+</ul>
+
+<p>where we naturally have $t \ge m \ge k$.</p>
+
+<p>Take $T$ is random variable, the credibility of $t$ is</p>
+
+\[\tag{1} p(T=t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}\]
+
+<p>Computing the second order moment, we have</p>
+
+\[\tag{2} Var = \frac{(k-1)(m-1)(m-k+1)}{(k-3)(k-2)^2}\]
+
+<h2 id="the-second-order-moment">The second order moment</h2>
+
+<p>The second order moment is $E(T^2)$</p>
+
+\[\sum_{t=m}^{\infty}t^2 \cdot p(t \vert m, k)\]
+
+<p>More specifically</p>
+
+\[E(T^2) = \frac{(k-1) \cdot C_{m-1}^{k-1}}{k} \cdot\sum_{t=m}^{\infty} \frac{t^2}{C_t^k}\]
+
+<p>Inside the summation, each element is</p>
+
+\[\frac{t^2}{C_t^k} = \frac{t \cdot k! \cdot (t-k)!}{(t-1)!}\]
+
+<p>It changes into</p>
+
+\[\sum_{x=0}^{\infty} \frac{(m+x) \cdot k! \cdot (m-k)! \cdot (m-k+1)_x}{(m-1)! \cdot (m)_x}\]
+
+<p>Simplify it</p>
+
+\[\frac{k! \cdot (m-k)!}{(m-1)!} \cdot \sum_{x=0}^{\infty}\frac{(m-1+x+1) \cdot (m-k+1)_x}{(m)_x}\]
+
+<p>Split the $E(T^2)$ into two parts,
+The first part is</p>
+
+\[E_1(T^2) = (m-1)E(T)\]
+
+<p>Next, we compute the seconds part from</p>
+
+\[\frac{k! \cdot (m-k)!}{(m-1)!} \cdot \sum_{x=0}^{\infty}\frac{(x+1) \cdot (m-k+1)_x}{(m)_x}\]
+
+<p>The summation element is</p>
+
+\[\frac{(x+1) \cdot (1)_{x} \cdot (m-k+1)_x}{x! \cdot (m)_x}\]
+
+<p>It changes into</p>
+
+\[\frac{(2)_{x} \cdot (m-k+1)_x}{x! \cdot (m)_x}\]
+
+<p>Using the Gauss’s Hypergeometric Theorem</p>
+
+\[\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}\]
+
+<p>Using the property of $(1)_x = x!$, it equals to $c=m, a=2, b=m-k+1$</p>
+
+\[\frac{k! \cdot (m-k)!}{(m-1)!} \cdot \frac{\Gamma(m) \Gamma(k-3)}{\Gamma(m-2) \Gamma(k-1)}\]
+
+<p>It equals to</p>
+
+\[\frac{k! \cdot (m-k)!}{(m-1)!} \cdot \frac{(m-1)(m-2)}{(k-2)(k-3)}\]
+
+<p>As a result, the second part is</p>
+
+\[E_2(T^2) = \frac{(k-1) \cdot C_{m-1}^{k-1}}{k} \cdot \frac{k! \cdot (m-k)!}{(m-1)!} \cdot \frac{(m-1)(m-2)}{(k-2)(k-3)}\]
+
+<p>Using</p>
+
+\[E(T) = \frac{(k-1) \cdot C_{m-1}^{k-1}}{k} \cdot \frac{k! \cdot (m-k)!}{(m-1)!} \cdot \frac{m-1}{k-2}\]
+
+<p>We have</p>
+
+\[E_2(T^2) = E(T) \cdot \frac{m-2}{k-3}\]
+
+<p>Finally</p>
+
+\[E(T^2) = E(T) \cdot ((m-1) + \frac{m-2}{k-3})\]
+
+<p>$\blacksquare$</p>
+
+<h2 id="variation">Variation</h2>
+
+<p>We are interested in</p>
+
+\[Var = E(T^2) - E^2(T)\]
+
+<p>Since we have</p>
+
+\[E(t) = (m-1)(k-1)(k-2)^{-1}\]
+
+<p>So, we have</p>
+
+\[Var = E(T) \cdot ((m-1) + \frac{m-2}{k-3} - (m-1)(k-1)(k-2)^{-1})\]
+
+<p>The latter part equals to</p>
+
+\[\frac{(m-1)(k-2)(k-3) + (m-2)(k-2) - (m-1)(k-1)(k-3)}{(k-2)(k-3)}\]
+
+<p>then</p>
+
+\[\frac{(m-2)(k-2) - (m-1)(k-3)}{(k-2)(k-3)} = \frac{1+m-k}{(k-2)(k-3)}\]
+
+<p>Finally,</p>
+
+\[Var = \frac{(k-1)(m-1)(m-k+1)}{(k-3)(k-2)^2}\]
+
+<p>$\blacksquare$</p>]]></content><author><name>listenzcc</name></author><category term="Probability" /><category term="Binomial" /><category term="Bayesian" /><category term="GermanTank" /><summary type="html"><![CDATA[本文还是对“German tanks problem”的贝叶斯估计问题进行定量求解，完成了它的二阶矩的相关计算，目前的方法还算简单。]]></summary></entry><entry><title type="html">二项分布二三事（四）</title><link href="/book/probability/binomial/bayesian/germantank/2024/12/09/german-tank-problem-2.html" rel="alternate" type="text/html" title="二项分布二三事（四）" /><published>2024-12-09T00:00:00+00:00</published><updated>2024-12-09T00:00:00+00:00</updated><id>/book/probability/binomial/bayesian/germantank/2024/12/09/german-tank-problem-2</id><content type="html" xml:base="/book/probability/binomial/bayesian/germantank/2024/12/09/german-tank-problem-2.html"><![CDATA[<p>本文对“German tanks problem”的贝叶斯估计问题进行定量求解，证明了前文列出的概率密度函数的归一性，并给出了其分布的均值。二者都是用超几何分布，经简单推导即可得到。
+还遗漏了它的二阶矩的相关计算，目前还没想到简单的算法。</p>
+
+<hr />
+
+<p>[toc]</p>
+
+<h2 id="probabilities-dense">Probabilities dense</h2>
+
+<p>Using the notions:</p>
+
+<ul>
+  <li>$t$, the total number which is unknown.</li>
+  <li>$m$, the obtained maximum number.</li>
+  <li>$k$, the count of the observations.</li>
+</ul>
+
+<p>where we naturally have $t \ge m \ge k$.</p>
+
+<p>Take $T$ is random variable, the credibility of $t$ is</p>
+
+\[\tag{1} p(T=t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}\]
+
+<p>It follows the unit property of the probability dense function (see <a href="#unit-property">Unit property</a>).</p>
+
+<p>And the expectation is also quite simple (see <a href="#expectation">Expectation</a>)
+\(E(t) = (m-1)(k-1)(k-2)^{-1}\)</p>
+
+<h2 id="unit-property">Unit property</h2>
+
+<p>Lemma 1:</p>
+
+\[\sum_{t=m}^{\infty}p(t \vert m, k) = 1\]
+
+<p>Proof:</p>
+
+<p>It equals to the equation</p>
+
+\[\tag{L1.1} \sum_{t=m}^{\infty} \frac{1}{C_t^k} = \frac{k}{(k-1) \cdot C_{m-1}^{k-1}}\]
+
+<p>And each element is</p>
+
+\[\frac{1}{C_t^k} = \frac{k! \cdot (t-k)!}{t!}\]
+
+<p>Using the Gauss’s Hypergeometric Theorem</p>
+
+\[\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}\]
+
+<p>In my case, the $L1.1$ changes into</p>
+
+\[\sum_{x=0}^{\infty} \frac{k! \cdot (m-k)! \cdot (m-k+1)_x}{m! \cdot (m+1)_x}\]
+
+<p>Using the property of $(1)_x = x!$, it equals to $c=m+1, a=1, b=m-k+1$</p>
+
+\[\frac{k! \cdot (m-k)!}{m!} \cdot \frac{\Gamma(m+1) \Gamma(k-1)}{\Gamma(m) \Gamma(k)}\]
+
+<p>It equals to</p>
+
+\[\frac{k! \cdot (m-k)!}{m!} \cdot \frac{m}{k-1}\]
+
+<p>It turns into</p>
+
+\[\frac{k}{k-1} \frac{(k-1)! \cdot (m-k)!}{(m-1)!} = \frac{k}{(k-1) \cdot C_{m-1}^{k-1}}\]
+
+<p>$\blacksquare$</p>
+
+<h2 id="expectation">Expectation</h2>
+
+<p>Lemma 2:</p>
+
+\[E(t) = (m-1)(k-1)(k-2)^{-1}\]
+
+<p>Proof:</p>
+
+<p>The expectation is</p>
+
+\[\sum_{t=m}^{\infty}t \cdot p(t \vert m, k)\]
+
+<p>More specifically</p>
+
+\[E(t) = \frac{(k-1) \cdot C_{m-1}^{k-1}}{k} \cdot\sum_{t=m}^{\infty} \frac{t}{C_t^k}\]
+
+<p>Consider the summation, each element is</p>
+
+\[\frac{t}{C_t^k} = \frac{k! \cdot (t-k)!}{(t-1)!}\]
+
+<p>It changes into</p>
+
+\[\sum_{x=0}^{\infty} \frac{k! \cdot (m-k)! \cdot (m-k+1)_x}{(m-1)! \cdot (m)_x}\]
+
+<p>Using the Gauss’s Hypergeometric Theorem</p>
+
+\[\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}\]
+
+<p>Using the property of $(1)_x = x!$, it equals to $c=m, a=1, b=m-k+1$</p>
+
+\[\frac{k! \cdot (m-k)!}{(m-1)!} \cdot \frac{\Gamma(m) \Gamma(k-2)}{\Gamma(m-1) \Gamma(k-1)}\]
+
+<p>As a result</p>
+
+\[E(t) = \frac{(k-1) \cdot C_{m-1}^{k-1}}{k} \cdot \frac{k! \cdot (m-k)!}{(m-1)!} \cdot \frac{m-1}{k-2}\]
+
+<p>Because of</p>
+
+\[C_{m-1}^{k-1} = \frac{(m-1)!}{(k-1)! \cdot (m-k)!}\]
+
+<p>We finally have</p>
+
+\[E(t) = (m-1)(k-1)(k-2)^{-1}\]
+
+<p>$\blacksquare$</p>]]></content><author><name>listenzcc</name></author><category term="Probability" /><category term="Binomial" /><category term="Bayesian" /><category term="GermanTank" /><summary type="html"><![CDATA[本文对“German tanks problem”的贝叶斯估计问题进行定量求解，证明了前文列出的概率密度函数的归一性，并给出了其分布的均值。二者都是用超几何分布，经简单推导即可得到。 还遗漏了它的二阶矩的相关计算，目前还没想到简单的算法。 [toc] Probabilities dense Using the notions: $t$, the total number which is unknown. $m$, the obtained maximum number. $k$, the count of the observations. where we naturally have $t \ge m \ge k$. Take $T$ is random variable, the credibility of $t$ is \[\tag{1} p(T=t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}\] It follows the unit property of the probability dense function (see Unit property). And the expectation is also quite simple (see Expectation) \(E(t) = (m-1)(k-1)(k-2)^{-1}\) Unit property Lemma 1: \[\sum_{t=m}^{\infty}p(t \vert m, k) = 1\] Proof: It equals to the equation \[\tag{L1.1} \sum_{t=m}^{\infty} \frac{1}{C_t^k} = \frac{k}{(k-1) \cdot C_{m-1}^{k-1}}\] And each element is \[\frac{1}{C_t^k} = \frac{k! \cdot (t-k)!}{t!}\] Using the Gauss’s Hypergeometric Theorem \[\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}\] In my case, the $L1.1$ changes into \[\sum_{x=0}^{\infty} \frac{k! \cdot (m-k)! \cdot (m-k+1)_x}{m! \cdot (m+1)_x}\] Using the property of $(1)_x = x!$, it equals to $c=m+1, a=1, b=m-k+1$ \[\frac{k! \cdot (m-k)!}{m!} \cdot \frac{\Gamma(m+1) \Gamma(k-1)}{\Gamma(m) \Gamma(k)}\] It equals to \[\frac{k! \cdot (m-k)!}{m!} \cdot \frac{m}{k-1}\] It turns into \[\frac{k}{k-1} \frac{(k-1)! \cdot (m-k)!}{(m-1)!} = \frac{k}{(k-1) \cdot C_{m-1}^{k-1}}\] $\blacksquare$ Expectation Lemma 2: \[E(t) = (m-1)(k-1)(k-2)^{-1}\] Proof: The expectation is \[\sum_{t=m}^{\infty}t \cdot p(t \vert m, k)\] More specifically \[E(t) = \frac{(k-1) \cdot C_{m-1}^{k-1}}{k} \cdot\sum_{t=m}^{\infty} \frac{t}{C_t^k}\] Consider the summation, each element is \[\frac{t}{C_t^k} = \frac{k! \cdot (t-k)!}{(t-1)!}\] It changes into \[\sum_{x=0}^{\infty} \frac{k! \cdot (m-k)! \cdot (m-k+1)_x}{(m-1)! \cdot (m)_x}\] Using the Gauss’s Hypergeometric Theorem \[\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}\] Using the property of $(1)_x = x!$, it equals to $c=m, a=1, b=m-k+1$ \[\frac{k! \cdot (m-k)!}{(m-1)!} \cdot \frac{\Gamma(m) \Gamma(k-2)}{\Gamma(m-1) \Gamma(k-1)}\] As a result \[E(t) = \frac{(k-1) \cdot C_{m-1}^{k-1}}{k} \cdot \frac{k! \cdot (m-k)!}{(m-1)!} \cdot \frac{m-1}{k-2}\] Because of \[C_{m-1}^{k-1} = \frac{(m-1)!}{(k-1)! \cdot (m-k)!}\] We finally have \[E(t) = (m-1)(k-1)(k-2)^{-1}\] $\blacksquare$]]></summary></entry><entry><title type="html">二项分布二三事（三）</title><link href="/book/probability/binomial/bayesian/germantank/2024/11/29/german-tank-problem-1.html" rel="alternate" type="text/html" title="二项分布二三事（三）" /><published>2024-11-29T00:00:00+00:00</published><updated>2024-11-29T00:00:00+00:00</updated><id>/book/probability/binomial/bayesian/germantank/2024/11/29/german-tank-problem-1</id><content type="html" xml:base="/book/probability/binomial/bayesian/germantank/2024/11/29/german-tank-problem-1.html"><![CDATA[<p>这就是著名的“德国坦克”统计问题。
+该问题可以简单地描述成这样一句话：</p>
+
+<blockquote>
+  <p>我面前是一个黑箱，箱子里面的元素按顺序编号。我从中无放回地采样<code class="language-plaintext highlighter-rouge">10</code>次，得到的最大标号为<code class="language-plaintext highlighter-rouge">100</code>，那么请问这个箱子里的元素数量是多少？</p>
+</blockquote>
+
+<p>这个问题十分有趣，因为贝叶斯学派和频率学派分别给出了不同的估计结果。
+而且两派各有道理。</p>
+
+<p>本文尝试从贝叶斯学派的观点来解释这个问题，之后再尝试记录频率学派的分析结果。</p>
+
+<p>写在前面：</p>
+
+<ol>
+  <li>因为这个问题涉及的知识比较繁杂，我目前还没有完全理清楚，因此暂时写出来放在这里。</li>
+  <li>现阶段想到哪里写到哪里，没有到校对和整理的阶段，因此不同章节的符号使用可能略有不同。</li>
+  <li>我习惯用vim进行笔记，这个东西（尤其是在输入公式时）对中文输入法并不友好，因此草稿以英文为主。</li>
+  <li>严格来说这也并不是二项分布问题，但由于组合数的存在，这个问题总是容易与二项分布联系起来。</li>
+</ol>
+
+<hr />
+
+<p>[toc]</p>
+
+<h2 id="problem-description">Problem Description</h2>
+
+<p>There are $m$ (unknown) items, numbered as $0, 1 \dots m$.
+Randomly choice $k$ items without replacement.
+And the maximum number of chosen items is $n$.
+Find the solution of</p>
+
+\[\tag{1} \hat{m} = \arg\max_m \varphi(k, n, m)\]
+
+<p>where $\varphi(k, n, m)$ refers the probability of the pair of $(k, n, m)$.
+Naturally, $m \ge n \ge k$.</p>
+
+<h2 id="bayesian-analysis">Bayesian Analysis</h2>
+
+<p>Analysis the $\varphi$, it equals the combination of two things</p>
+
+<ol>
+  <li>In prior, select $k$ items from $m$ without replacement.</li>
+  <li>The maximum number of the chosen items is $n$.</li>
+</ol>
+
+<p>The conditional probability is</p>
+
+\[p(n \vert m, k) = \frac{C_{n-1}^{k-1}}{C_m^k}\]
+
+<p>where the probability is computed as the division between choosing $k-1$ items from $n-1$ numbers and choosing $k$ items from $m$ total (since $n$ is locked).
+In theory, the probability follows</p>
+
+\[\sum_{n=k}^{m} p(n \vert m, k) = 1\]
+
+<p>which satisfiers all the possible $k$.
+And the joint probability between $m$ and $n$ is drawn below
+It also derives</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>$$p(n \vert k) = \sum_{m=n}^{\infty} p(n \vert m, k) p(m</td>
+      <td>k)$$</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><img src="/assets/binomial-distribution-img/Conditional%20prob%20of%20n%20at%20m%20and%20k=5.png" alt="Conditional prob" title="Conditional prob" /></p>
+
+<h2 id="probability-formula">Probability formula</h2>
+
+<p>To find the closed-formula[^closed-formula] for the probability, the key take-away is the $(2)$ of the <a href="#lemma-2">Lemma 2</a>.
+[^closed-formula]: <a href="https://en.wikipedia.org/wiki/Closed-form_expression">https://en.wikipedia.org/wiki/Closed-form_expression</a></p>
+
+<p>It gives the probability mass function[^probability-mass-function] for the unknown value under observations.
+[^probability-mass-function]: <a href="https://en.wikipedia.org/wiki/Probability_mass_function">https://en.wikipedia.org/wiki/Probability_mass_function</a></p>
+
+<h3 id="lemma-1">Lemma 1</h3>
+
+<p>For the large enough $M&gt;m$ we have</p>
+
+\[p(m \vert k) = \frac{1}{M-k}\]
+
+<p>It shows the $p(m\vert k)$ is irrelevant with $m$, what ever the $M$ is.</p>
+
+<p>$\blacksquare$</p>
+
+<h3 id="lemma-2">Lemma 2</h3>
+
+<p>In this section, we use the notions for the better working memory</p>
+
+<ul>
+  <li>$t$, the total number which is unknown.</li>
+  <li>$m$, the obtained maximum number.</li>
+  <li>$k$, the count of the observations.</li>
+</ul>
+
+<p>Take $T$ is random variable, the credibility of $t$ is</p>
+
+\[\tag{2} p(T=t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}\]
+
+<p>Using Bayesian probability function, we have</p>
+
+\[p(t \vert m, k) = \frac{p(m \vert t, k)p(t \vert k)}{p(m \vert k)}\]
+
+<p>Thus, we have</p>
+
+\[p(t \vert m, k) = \frac{p(m \vert t, k) p(t \vert k)}{\sum_{\tau=m}^{\infty} p(m \vert \tau, k) p(\tau \vert k)}\]
+
+<p>where $\tau$ refers the variable of $t$, and $p(\tau \vert k) = p(t \vert k)$ (see <a href="#lemma-1">Lemma 1</a>). It consists</p>
+
+\[p(t \vert m, k) = \frac{p(m \vert t, k)}{\sum_{\tau=m}^{\infty} p(m \vert \tau, k)}\]
+
+<p>In general, we have</p>
+
+\[p(m \vert t, k) = \frac{C_{m-1}^{k-1}}{C_t^k}\]
+
+<p>and the $t$ can be rewritten as $\tau$</p>
+
+\[p(m \vert \tau, k) = \frac{C_{m-1}^{k-1}}{C_\tau^k}\]
+
+<p>We notice that</p>
+
+\[\frac{C_{m-1}^{k-1}}{C_m^k} = \frac{k}{m}\]
+
+<p>and</p>
+
+\[\frac{C_{m-1}^{k-1}}{C_{m+1}^k} = \frac{k(m+1-k)}{m(m+1)}\]
+
+<p>It produces the series</p>
+
+\[\begin{cases}
+a_0 &amp;=\frac{k}{m}\\
+a_x &amp;= a_{x-1} \cdot \frac{m+x-k}{m+x}, x \in [1, 2 \dots]
+\end{cases}\]
+
+<p>The summation is (see <a href="#lemma-3">Lemma 3</a>)</p>
+
+\[\sum_{i=0}^{\infty} a_i = \frac{k}{k-1}\]
+
+<p>As a result, the credibility of $t$ is</p>
+
+\[p(t\vert m, k) = \frac{p(m \vert t, k)}{\sum_{i=0}^{\infty} a_i}\]
+
+<p>It equals to</p>
+
+\[p(t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}\]
+
+<p>or, in the alignment format</p>
+
+\[p(t \vert m, k) = (k-1)C_{m-1}^{k-1} \cdot \begin{pmatrix}k {C_m^k}\end{pmatrix}^{-1}\]
+
+<p>$\blacksquare$</p>
+
+<h3 id="lemma-3">Lemma 3</h3>
+
+<p>Using Gauss’s Hypergeometric Theorem<sup id="fnref:wiki-ght" role="doc-noteref"><a href="#fn:wiki-ght" class="footnote" rel="footnote">1</a></sup> (Gauss’s summation theorem), we have</p>
+
+\[\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}\]
+
+<p>where $(a)_x = a(a+1)\dots (a+x-1)$. For a special case, we have</p>
+
+\[(1)_x = x!\]
+
+<p>In my case</p>
+
+\[a_x = \frac{k}{m} \cdot \frac{(m+x-k)_x}{(m+1)_x}\]
+
+<p>It is transformed to</p>
+
+\[a_x = \frac{k}{m} \cdot \frac{(1)_x \cdot (m+1-k)_x}{x! \cdot (m+1)_x}\]
+
+<p>As the result, the summation is</p>
+
+\[\frac{k}{m} \cdot \frac{\Gamma(m+1)\Gamma(k-1)}{\Gamma(m)\Gamma(k)} = \frac{k}{k-1}\]
+
+<p>where</p>
+
+\[\begin{cases}
+a&amp;=1\\
+b&amp;=m+1-k\\
+c&amp;=m+1
+\end{cases} \Rightarrow
+\begin{cases}
+c-a &amp;= m\\
+c-b &amp;= k\\
+c-a-b &amp;= k-1
+\end{cases}\]
+
+<p>and</p>
+
+\[\begin{cases}
+n \Gamma(n) &amp;= n!\\
+\Gamma(n) &amp;= (n-1)!, n \in \bold{N}^+
+\end{cases}\]
+
+<p>$\blacksquare$</p>
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:wiki-ght" role="doc-endnote">
+      <p>https://en.wikipedia.org/wiki/Hypergeometric_function <a href="#fnref:wiki-ght" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>]]></content><author><name>listenzcc</name></author><category term="Probability" /><category term="Binomial" /><category term="Bayesian" /><category term="GermanTank" /><summary type="html"><![CDATA[这就是著名的“德国坦克”统计问题。 该问题可以简单地描述成这样一句话： 我面前是一个黑箱，箱子里面的元素按顺序编号。我从中无放回地采样10次，得到的最大标号为100，那么请问这个箱子里的元素数量是多少？ 这个问题十分有趣，因为贝叶斯学派和频率学派分别给出了不同的估计结果。 而且两派各有道理。 本文尝试从贝叶斯学派的观点来解释这个问题，之后再尝试记录频率学派的分析结果。 写在前面： 因为这个问题涉及的知识比较繁杂，我目前还没有完全理清楚，因此暂时写出来放在这里。 现阶段想到哪里写到哪里，没有到校对和整理的阶段，因此不同章节的符号使用可能略有不同。 我习惯用vim进行笔记，这个东西（尤其是在输入公式时）对中文输入法并不友好，因此草稿以英文为主。 严格来说这也并不是二项分布问题，但由于组合数的存在，这个问题总是容易与二项分布联系起来。 [toc] Problem Description There are $m$ (unknown) items, numbered as $0, 1 \dots m$. Randomly choice $k$ items without replacement. And the maximum number of chosen items is $n$. Find the solution of \[\tag{1} \hat{m} = \arg\max_m \varphi(k, n, m)\] where $\varphi(k, n, m)$ refers the probability of the pair of $(k, n, m)$. Naturally, $m \ge n \ge k$. Bayesian Analysis Analysis the $\varphi$, it equals the combination of two things In prior, select $k$ items from $m$ without replacement. The maximum number of the chosen items is $n$. The conditional probability is \[p(n \vert m, k) = \frac{C_{n-1}^{k-1}}{C_m^k}\] where the probability is computed as the division between choosing $k-1$ items from $n-1$ numbers and choosing $k$ items from $m$ total (since $n$ is locked). In theory, the probability follows \[\sum_{n=k}^{m} p(n \vert m, k) = 1\] which satisfiers all the possible $k$. And the joint probability between $m$ and $n$ is drawn below It also derives \[p(n \vert k) = \sum_{m=n}^{\infty} p(n \vert m, k) p(m | k)\] Probability formula To find the closed-formula[^closed-formula] for the probability, the key take-away is the $(2)$ of the Lemma 2. [^closed-formula]: https://en.wikipedia.org/wiki/Closed-form_expression It gives the probability mass function[^probability-mass-function] for the unknown value under observations. [^probability-mass-function]: https://en.wikipedia.org/wiki/Probability_mass_function Lemma 1 For the large enough $M&gt;m$ we have \[p(m \vert k) = \frac{1}{M-k}\] It shows the $p(m\vert k)$ is irrelevant with $m$, what ever the $M$ is. $\blacksquare$ Lemma 2 In this section, we use the notions for the better working memory $t$, the total number which is unknown. $m$, the obtained maximum number. $k$, the count of the observations. Take $T$ is random variable, the credibility of $t$ is \[\tag{2} p(T=t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}\] Using Bayesian probability function, we have \[p(t \vert m, k) = \frac{p(m \vert t, k)p(t \vert k)}{p(m \vert k)}\] Thus, we have \[p(t \vert m, k) = \frac{p(m \vert t, k) p(t \vert k)}{\sum_{\tau=m}^{\infty} p(m \vert \tau, k) p(\tau \vert k)}\] where $\tau$ refers the variable of $t$, and $p(\tau \vert k) = p(t \vert k)$ (see Lemma 1). It consists \[p(t \vert m, k) = \frac{p(m \vert t, k)}{\sum_{\tau=m}^{\infty} p(m \vert \tau, k)}\] In general, we have \[p(m \vert t, k) = \frac{C_{m-1}^{k-1}}{C_t^k}\] and the $t$ can be rewritten as $\tau$ \[p(m \vert \tau, k) = \frac{C_{m-1}^{k-1}}{C_\tau^k}\] We notice that \[\frac{C_{m-1}^{k-1}}{C_m^k} = \frac{k}{m}\] and \[\frac{C_{m-1}^{k-1}}{C_{m+1}^k} = \frac{k(m+1-k)}{m(m+1)}\] It produces the series \[\begin{cases} a_0 &amp;=\frac{k}{m}\\ a_x &amp;= a_{x-1} \cdot \frac{m+x-k}{m+x}, x \in [1, 2 \dots] \end{cases}\] The summation is (see Lemma 3) \[\sum_{i=0}^{\infty} a_i = \frac{k}{k-1}\] As a result, the credibility of $t$ is \[p(t\vert m, k) = \frac{p(m \vert t, k)}{\sum_{i=0}^{\infty} a_i}\] It equals to \[p(t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}\] or, in the alignment format \[p(t \vert m, k) = (k-1)C_{m-1}^{k-1} \cdot \begin{pmatrix}k {C_m^k}\end{pmatrix}^{-1}\] $\blacksquare$ Lemma 3 Using Gauss’s Hypergeometric Theorem1 (Gauss’s summation theorem), we have \[\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}\] where $(a)_x = a(a+1)\dots (a+x-1)$. For a special case, we have \[(1)_x = x!\] In my case \[a_x = \frac{k}{m} \cdot \frac{(m+x-k)_x}{(m+1)_x}\] It is transformed to \[a_x = \frac{k}{m} \cdot \frac{(1)_x \cdot (m+1-k)_x}{x! \cdot (m+1)_x}\] As the result, the summation is \[\frac{k}{m} \cdot \frac{\Gamma(m+1)\Gamma(k-1)}{\Gamma(m)\Gamma(k)} = \frac{k}{k-1}\] where \[\begin{cases} a&amp;=1\\ b&amp;=m+1-k\\ c&amp;=m+1 \end{cases} \Rightarrow \begin{cases} c-a &amp;= m\\ c-b &amp;= k\\ c-a-b &amp;= k-1 \end{cases}\] and \[\begin{cases} n \Gamma(n) &amp;= n!\\ \Gamma(n) &amp;= (n-1)!, n \in \bold{N}^+ \end{cases}\] $\blacksquare$ https://en.wikipedia.org/wiki/Hypergeometric_function &#8617;]]></summary></entry><entry><title type="html">二项分布二三事（一）</title><link href="/book/probability/binomial/2024/11/22/binomial-distribution-1.html" rel="alternate" type="text/html" title="二项分布二三事（一）" /><published>2024-11-22T00:00:00+00:00</published><updated>2024-11-22T00:00:00+00:00</updated><id>/book/probability/binomial/2024/11/22/binomial-distribution-1</id><content type="html" xml:base="/book/probability/binomial/2024/11/22/binomial-distribution-1.html"><![CDATA[<p>在古典概率模型中，概率总可以表示成大量重复实验的叠加结果。
+二项分布针对实验结果为二元值时（比如发生与否、成功与否等）的统计量进行计算，是十分有用的统计工具。
+本系列尝试使用尽量简单明了的方法，将它的内涵与外延记录下来。</p>
+
+<hr />
+
+<p>[toc]</p>
+
+<h2 id="定义">定义</h2>
+
+<p>假设 $ X \sim B(p, N) $，这指的是两个方面：</p>
+
+<ol>
+  <li>在一次实验中，事件发生与否，且发生的概率为 $ p $。</li>
+  <li>在 $ N $ 次独立实验中，事件发生了 $ x $ 次。</li>
+</ol>
+
+<p>因此，$ X $ 的概率分布为：</p>
+
+\[P(x) = C_N^x \cdot p^x \cdot q^{N-x}\]
+
+<p>其中 $ p+q=1 $，且 $ C_N^x $ 表示从 $ N $ 中选择 $ x $ 个的组合数。</p>
+
+<p>该组合数的计算方式为：</p>
+
+\[C_N^x = \frac{N!}{x! \cdot (N-x)!}\]
+
+<p>并且，$ P(x) $ 遵循完全的概率测度：</p>
+
+\[\sum_{x=0}^{N} P(x) = (p+q)^N = 1\]
+
+<p>$\blacksquare$</p>
+
+<h2 id="事例连续投资的指数爆炸">事例：连续投资的指数爆炸</h2>
+
+<p>假设有一个游戏，包含 $ N $ 次独立实验（投资），每次实验遵循二项分布规则：</p>
+
+<ul>
+  <li>如果事件发生（概率为 $ p $），则资产增长到原来的 $ a = 9 $ 倍；</li>
+  <li>如果事件未发生（概率为 $ q $），则资产减少到原来的 $ b = 0.1 $ 倍。</li>
+</ul>
+
+<p>那么，最终资产的期望为：</p>
+
+\[\sum_{x=0}^{N} P(x) \cdot a^x \cdot b^{N-x}\]
+
+<p>事实上，这种投资与收益是几乎不可能长期维持的，因为指数增长得实在是太快了。假设事件连续发生$10$次，那么资产会膨胀到初始值的$9^{10}=3,486,784,401$倍（约为 34 亿倍）。
+同样的，如果事件连续未发生这么多次，那么资产会缩水到原来的这么多分之一，可以认为几乎不存在了。</p>
+
+<p>由于这个数值通常非常大（或者非常小），并且它的增长（缩水）速度也相当快，因此更好的方法是使用对数刻度来处理：</p>
+
+\[\sum_{x=0}^{N} P(x) \cdot \log{\left( a^x \cdot b^{N-x} \right)}\]
+
+<p>所谓对数就是将特别大（或者特别小）的数字转换成它是$10$的几次方，前面的例子中，$\log{9^{10}} \approx 9.5424$，以及$\log{0.1^{10}} = -10$。
+也就是说，在对数尺度下的正数代表增长、负数代表缩小。且只有当数值发生倍数变化时，才会在对数尺度上产生明显变化。</p>
+
+<p>但是这样的做法同样有问题，这几乎是一个常识的，“如何看待资产”的问题。如果一个人用<code class="language-plaintext highlighter-rouge">1万元</code>投资。那么当他的资产增长到<code class="language-plaintext highlighter-rouge">100万元</code>时，在对数坐标上得到的值是<code class="language-plaintext highlighter-rouge">2</code>；而当他的资产缩水到<code class="language-plaintext highlighter-rouge">100元</code>时，在对数坐标上得到的值是<code class="language-plaintext highlighter-rouge">-2</code>。
+虽然二者在坐标轴上相加为零，但前者与后者带来的心理和社会收益却是完全无法相提并论的。
+当然，除此之外，对数坐标还是比较适合显示连续相乘的结果。</p>
+
+<p>我将以上算式的结果绘制如下，如图所示，
+如果你按照这个规则进行投资，你会随着时间的推移失去所有的钱，因为在对数刻度下，在中心概率附近，收益的期望值是负数。</p>
+
+<p><img src="/assets/binomial-distribution-img/exponential%20boom.png" alt="exponentialBoom" title="exponentialBoom" /></p>
+
+<h3 id="分散投资策略">分散投资策略</h3>
+
+<p>之前的分析结果表明，如果你将所有资金投入其中，长期来看你将失去所有的资金。
+然而，如果你将资金分成 $ m $ 份，并分 $ m $ 次进行操作，情况会有所不同。
+对于一次实验，其期望为：</p>
+
+\[E(Y) = \frac{1}{m} \sum_{x=0}^{m} P_m(x) \left( a \cdot x + b \cdot (m - x) \right)\]
+
+<p>其中 $ P_m(x) $ 是 $ m $ 次实验中 $ x $ 次成功的二项分布。
+事实证明，如果你将资金分开进行实验，风险（用标准差衡量）会有所减少。标准差的计算方式为：</p>
+
+\[\text{Var.} = E(Y^2) - E^2(Y)\]
+
+<p>其中：</p>
+
+\[E(Y^2) = \sum_{x=0}^{m} P_m(x) \left( \frac{a \cdot x + b \cdot (m - x)}{m} \right)^2\]
+
+<p><img src="/assets/binomial-distribution-img/separating.png" alt="separating" title="separating" /></p>
+
+<h2 id="gamma-函数">Gamma 函数</h2>
+
+<p>Gamma 函数（$ \Gamma $）的定义为：</p>
+
+\[\Gamma(z) = \int_0^\infty t^{z-1} e^{-t} dt\]
+
+<p>它具有一个重要的性质：</p>
+
+\[\begin{cases}
+\Gamma(z+1) &amp;= z \Gamma(z) \\
+\Gamma(0) &amp;= 1
+\end{cases}
+\Rightarrow \Gamma(n+1) = n!, n \in [0, 1, 2, \dots]\]
+
+<p>因此，$ P(x) $ 可以通过 Beta 函数来表示：</p>
+
+\[\text{Beta}(x, y) = \frac{\Gamma(x+y+1)}{\Gamma(x+1) \Gamma(y+1)}\]
+
+<p>并且，</p>
+
+\[P_m(x) = \text{Beta}(x, m-x) \cdot p^x \cdot q^{m-x}\]
+
+<p>$\blacksquare$</p>]]></content><author><name>listenzcc</name></author><category term="Probability" /><category term="Binomial" /><summary type="html"><![CDATA[在古典概率模型中，概率总可以表示成大量重复实验的叠加结果。 二项分布针对实验结果为二元值时（比如发生与否、成功与否等）的统计量进行计算，是十分有用的统计工具。 本系列尝试使用尽量简单明了的方法，将它的内涵与外延记录下来。 [toc] 定义 假设 $ X \sim B(p, N) $，这指的是两个方面： 在一次实验中，事件发生与否，且发生的概率为 $ p $。 在 $ N $ 次独立实验中，事件发生了 $ x $ 次。 因此，$ X $ 的概率分布为： \[P(x) = C_N^x \cdot p^x \cdot q^{N-x}\] 其中 $ p+q=1 $，且 $ C_N^x $ 表示从 $ N $ 中选择 $ x $ 个的组合数。 该组合数的计算方式为： \[C_N^x = \frac{N!}{x! \cdot (N-x)!}\] 并且，$ P(x) $ 遵循完全的概率测度： \[\sum_{x=0}^{N} P(x) = (p+q)^N = 1\] $\blacksquare$ 事例：连续投资的指数爆炸 假设有一个游戏，包含 $ N $ 次独立实验（投资），每次实验遵循二项分布规则： 如果事件发生（概率为 $ p $），则资产增长到原来的 $ a = 9 $ 倍； 如果事件未发生（概率为 $ q $），则资产减少到原来的 $ b = 0.1 $ 倍。 那么，最终资产的期望为： \[\sum_{x=0}^{N} P(x) \cdot a^x \cdot b^{N-x}\] 事实上，这种投资与收益是几乎不可能长期维持的，因为指数增长得实在是太快了。假设事件连续发生$10$次，那么资产会膨胀到初始值的$9^{10}=3,486,784,401$倍（约为 34 亿倍）。 同样的，如果事件连续未发生这么多次，那么资产会缩水到原来的这么多分之一，可以认为几乎不存在了。 由于这个数值通常非常大（或者非常小），并且它的增长（缩水）速度也相当快，因此更好的方法是使用对数刻度来处理： \[\sum_{x=0}^{N} P(x) \cdot \log{\left( a^x \cdot b^{N-x} \right)}\] 所谓对数就是将特别大（或者特别小）的数字转换成它是$10$的几次方，前面的例子中，$\log{9^{10}} \approx 9.5424$，以及$\log{0.1^{10}} = -10$。 也就是说，在对数尺度下的正数代表增长、负数代表缩小。且只有当数值发生倍数变化时，才会在对数尺度上产生明显变化。 但是这样的做法同样有问题，这几乎是一个常识的，“如何看待资产”的问题。如果一个人用1万元投资。那么当他的资产增长到100万元时，在对数坐标上得到的值是2；而当他的资产缩水到100元时，在对数坐标上得到的值是-2。 虽然二者在坐标轴上相加为零，但前者与后者带来的心理和社会收益却是完全无法相提并论的。 当然，除此之外，对数坐标还是比较适合显示连续相乘的结果。 我将以上算式的结果绘制如下，如图所示， 如果你按照这个规则进行投资，你会随着时间的推移失去所有的钱，因为在对数刻度下，在中心概率附近，收益的期望值是负数。 分散投资策略 之前的分析结果表明，如果你将所有资金投入其中，长期来看你将失去所有的资金。 然而，如果你将资金分成 $ m $ 份，并分 $ m $ 次进行操作，情况会有所不同。 对于一次实验，其期望为： \[E(Y) = \frac{1}{m} \sum_{x=0}^{m} P_m(x) \left( a \cdot x + b \cdot (m - x) \right)\] 其中 $ P_m(x) $ 是 $ m $ 次实验中 $ x $ 次成功的二项分布。 事实证明，如果你将资金分开进行实验，风险（用标准差衡量）会有所减少。标准差的计算方式为： \[\text{Var.} = E(Y^2) - E^2(Y)\] 其中： \[E(Y^2) = \sum_{x=0}^{m} P_m(x) \left( \frac{a \cdot x + b \cdot (m - x)}{m} \right)^2\] Gamma 函数 Gamma 函数（$ \Gamma $）的定义为： \[\Gamma(z) = \int_0^\infty t^{z-1} e^{-t} dt\] 它具有一个重要的性质： \[\begin{cases} \Gamma(z+1) &amp;= z \Gamma(z) \\ \Gamma(0) &amp;= 1 \end{cases} \Rightarrow \Gamma(n+1) = n!, n \in [0, 1, 2, \dots]\] 因此，$ P(x) $ 可以通过 Beta 函数来表示： \[\text{Beta}(x, y) = \frac{\Gamma(x+y+1)}{\Gamma(x+1) \Gamma(y+1)}\] 并且， \[P_m(x) = \text{Beta}(x, m-x) \cdot p^x \cdot q^{m-x}\] $\blacksquare$]]></summary></entry><entry><title type="html">二项分布二三事（二）</title><link href="/book/probability/binomial/momentgenerating/2024/11/22/binomial-distribution-2-moment-generating.html" rel="alternate" type="text/html" title="二项分布二三事（二）" /><published>2024-11-22T00:00:00+00:00</published><updated>2024-11-22T00:00:00+00:00</updated><id>/book/probability/binomial/momentgenerating/2024/11/22/binomial-distribution-2-moment-generating</id><content type="html" xml:base="/book/probability/binomial/momentgenerating/2024/11/22/binomial-distribution-2-moment-generating.html"><![CDATA[<p>二项分布的概率密度函数以排列组合为基础，但用排列组合的方式推导其高阶矩却是不怎么优雅的方法。
+本文通过二项分布的矩母函数对其二阶矩进行计算，通过简洁的微分形式表示二项分布的一阶原点矩（均值）和二阶中心矩（方差）。</p>
+
+<hr />
+
+<p>[toc]</p>
+
+<h2 id="二项分布的矩母函数">二项分布的矩母函数</h2>
+
+<p>二项分布的概率密度函数满足</p>
+
+\[p(x) = C_n^x \cdot p^x \cdot q^{n-x}\]
+
+<p>其中，$x \in [0, 1 \dots n]$，且$p+q=1$。
+其矩母函数为$E(e^{xt})$</p>
+
+\[M(t) = \sum_{x=0}^{n} e^{xt} \cdot C_n^x \cdot p^x \cdot q^{n-x}\]
+
+<p>整理得</p>
+
+\[M(t) = (q + p e^t)^n\]
+
+<p>则，其一阶矩$E(X)$为</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>$$M’</td>
+      <td>_{t=0}=n(q+p e^t)^{n-1} \cdot p e^t</td>
+      <td>_{t=0} = np$$</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>其二阶矩$E(X^2)$亦可通过二阶导数求得</p>
+
+\[M'' = npe^t(n-1)(q+p e^t)^{n-2} \cdot p e^t + n(q+p e^t)^{n-1} \cdot p e^t\]
+
+<table>
+  <tbody>
+    <tr>
+      <td>$$M’’</td>
+      <td>_{t=0}=n(n-1)pp + np = n^2p^2+np-npp = n^2p^2+npq$$</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>易得，其方差为</p>
+
+\[\text{Var} = E(X^2) - E^2(X) = npq\]
+
+<h2 id="附录矩母函数与随机变量的矩">附录：矩母函数与随机变量的矩</h2>
+
+<p>考虑随机变量$X$，其分布已知且解析</p>
+
+\[X \sim P(X)\]
+
+<p>构造如下函数，称为矩母函数<sup id="fnref:momentGenerating" role="doc-noteref"><a href="#fn:momentGenerating" class="footnote" rel="footnote">1</a></sup></p>
+
+\[M(t) = E(e^{xt}) = \int_x e^{xt} p(x) dx\]
+
+<p>其$n$阶微分为</p>
+
+\[M_t^{(n)} = \frac{\partial^n M}{\partial t^n} = \int_x x^n \cdot e^{xt} \cdot p(x) dx\]
+
+<p>不难发现</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>$$M_t^{(n)}</td>
+      <td>_{t=0} = E(x^n)$$</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>$\blacksquare$</p>
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:momentGenerating" role="doc-endnote">
+      <p><a href="https://en.wikipedia.org/wiki/Moment-generating_function">https://en.wikipedia.org/wiki/Moment-generating_function</a> <a href="#fnref:momentGenerating" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>]]></content><author><name>listenzcc</name></author><category term="Probability" /><category term="Binomial" /><category term="MomentGenerating" /><summary type="html"><![CDATA[二项分布的概率密度函数以排列组合为基础，但用排列组合的方式推导其高阶矩却是不怎么优雅的方法。 本文通过二项分布的矩母函数对其二阶矩进行计算，通过简洁的微分形式表示二项分布的一阶原点矩（均值）和二阶中心矩（方差）。 [toc] 二项分布的矩母函数 二项分布的概率密度函数满足 \[p(x) = C_n^x \cdot p^x \cdot q^{n-x}\] 其中，$x \in [0, 1 \dots n]$，且$p+q=1$。 其矩母函数为$E(e^{xt})$ \[M(t) = \sum_{x=0}^{n} e^{xt} \cdot C_n^x \cdot p^x \cdot q^{n-x}\] 整理得 \[M(t) = (q + p e^t)^n\] 则，其一阶矩$E(X)$为 \[M'|_{t=0}=n(q+p e^t)^{n-1} \cdot p e^t |_{t=0} = np\] 其二阶矩$E(X^2)$亦可通过二阶导数求得 \[M'' = npe^t(n-1)(q+p e^t)^{n-2} \cdot p e^t + n(q+p e^t)^{n-1} \cdot p e^t\] \[M''|_{t=0}=n(n-1)pp + np = n^2p^2+np-npp = n^2p^2+npq\] 易得，其方差为 \[\text{Var} = E(X^2) - E^2(X) = npq\] 附录：矩母函数与随机变量的矩 考虑随机变量$X$，其分布已知且解析 \[X \sim P(X)\] 构造如下函数，称为矩母函数1 \[M(t) = E(e^{xt}) = \int_x e^{xt} p(x) dx\] 其$n$阶微分为 \[M_t^{(n)} = \frac{\partial^n M}{\partial t^n} = \int_x x^n \cdot e^{xt} \cdot p(x) dx\] 不难发现 \[M_t^{(n)} |_{t=0} = E(x^n)\] $\blacksquare$ https://en.wikipedia.org/wiki/Moment-generating_function &#8617;]]></summary></entry><entry><title type="html">定位你和你的代理的桌面程序</title><link href="/book/it/application/2024/11/17/%E5%AE%9A%E4%BD%8D%E4%BD%A0%E5%92%8C%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%90%86%E7%9A%84%E6%A1%8C%E9%9D%A2%E7%A8%8B%E5%BA%8F-141dc9c70914803fb252ebe5ffa72df6.html" rel="alternate" type="text/html" title="定位你和你的代理的桌面程序" /><published>2024-11-17T00:00:00+00:00</published><updated>2024-11-17T00:00:00+00:00</updated><id>/book/it/application/2024/11/17/%E5%AE%9A%E4%BD%8D%E4%BD%A0%E5%92%8C%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%90%86%E7%9A%84%E6%A1%8C%E9%9D%A2%E7%A8%8B%E5%BA%8F%20141dc9c70914803fb252ebe5ffa72df6</id><content type="html" xml:base="/book/it/application/2024/11/17/%E5%AE%9A%E4%BD%8D%E4%BD%A0%E5%92%8C%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%90%86%E7%9A%84%E6%A1%8C%E9%9D%A2%E7%A8%8B%E5%BA%8F-141dc9c70914803fb252ebe5ffa72df6.html"><![CDATA[<p>这是一个基于 tkinter 的桌面 GUI 程序，它调用公共 API 定位你和你的代理（也称为梯子）所在的位置，并且 mapbox 将位置绘制在地图上。你的代理的位置很重要，因为有些厂商（比如 apple）不允许特定地区（比如 Russia）的代理登陆，这会极大降低你的翻墙体验。</p>
+
+<p>可以在我的 github 仓库找到这个程序。</p>
+
+<p><a href="https://github.com/listenzcc/IP-location-app.git" title="IP-location-app.git">IP-location-app.git</a></p>
+
+<hr />
+
+<p>[toc]</p>
+
+<h2 id="程序-gui-演示">程序 GUI 演示</h2>
+
+<p>这是该程序的界面，界面显示我的本地信息是在中国北京，而我的 proxy 则在大洋彼岸的某个地方。这里 proxy 的位置很重要，因为有些厂商（比如 OpenAI、Apple 等）不允许特定地区（比如 Russia）的代理登陆，一旦这种事情发生，我就发现 ChatGPT、Apple 等服务就会断开。这种情况也正是我动手写这个工具的动机之一。</p>
+
+<p><img src="/assets/%E5%AE%9A%E4%BD%8D%E4%BD%A0%E5%92%8C%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%90%86%E7%9A%84%E6%A1%8C%E9%9D%A2%E7%A8%8B%E5%BA%8F%20141dc9c70914803fb252ebe5ffa72df6/image.png" alt="image.png" /></p>
+
+<h2 id="获取你和你代理的-ip-及其-location">获取你和你代理的 IP 及其 location</h2>
+
+<p>我使用 amazonaws 提供的服务定位 IP 信息，进而通过 ip-api 提供的服务进行地理位置定位，获取过程见附件中的<code class="language-plaintext highlighter-rouge">get_ip_address</code>函数和<code class="language-plaintext highlighter-rouge">get_location</code>函数。简单来说，ip 信息是一串标准的 IPv4 地址，它代表服务器是如何对你的信息进行路由的；location 信息是一个 json 包，其中包含有时区、服务商、经纬度等地理信息。</p>
+
+<p><a href="https://checkip.amazonaws.com/" title="amazonaws">amazonaws</a></p>
+
+<p><a href="http://ip-api.com/json/" title="ip-api">ip-api</a></p>
+
+<h2 id="mapbox-地图">Mapbox 地图</h2>
+
+<p>我使用 mapbox 提供的 API 获取特定经纬度为中心的地图，获取过程见附件中的<code class="language-plaintext highlighter-rouge">get_img</code>函数。这个方法是一种静态方法，mapbox 提供的工具根据指定的经纬度、范围大小和地图风格信息生成一张图像，这张图的中心即是指定的地址位置。在例子中，我使用的地图风格是内置的<code class="language-plaintext highlighter-rouge">streets-v12</code>风格，另外，为了突出地理位置，我还将范围设置为<code class="language-plaintext highlighter-rouge">zoom=3</code>，这个参数一般用于显示地图中的次大陆或国家尺度。</p>
+
+<p><a href="https://docs.mapbox.com/api/maps/static-images/" title="mapbox">mapbox</a></p>
+
+<h2 id="实时渲染的-loading-动画">实时渲染的 loading 动画</h2>
+
+<p>另外，为了让 GUI 程序看上去更好看，我使用 simplex 噪声制作了实时渲染的 loading 动画，即在等待后端生成地图的时间内，地图位置呈现实时渲染的 simplex 噪声动画。</p>
+
+<p><a href="/assets/%E5%AE%9A%E4%BD%8D%E4%BD%A0%E5%92%8C%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%90%86%E7%9A%84%E6%A1%8C%E9%9D%A2%E7%A8%8B%E5%BA%8F%20141dc9c70914803fb252ebe5ffa72df6/%25E5%25B1%258F%25E5%25B9%2595%25E5%25BD%2595%25E5%2588%25B6_2024-11-17_145114.mp4">video.mp4</a></p>
+
+<p>为了保证动画的连续性，在我踩了多个坑之后，摸索出了适合 tkinter 的流畅动画方法。该方法的核心是使用<code class="language-plaintext highlighter-rouge">.after</code>方法，通过不断重复<code class="language-plaintext highlighter-rouge">draw</code>函数实现连续帧绘制。实测结果表明该方法能够以较高的<code class="language-plaintext highlighter-rouge">fps</code>进行动画绘制。</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="c1"># Draw the loading (animating) image
+</span>    <span class="c1"># when and only when the queried_img is not loaded.
+</span>    <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">queried_img</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1"># Generate simplex noise image and convert into PhotoImage
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">ni</span><span class="p">.</span><span class="n">generate</span><span class="p">()</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">ni</span><span class="p">.</span><span class="n">get_img</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">photo_img</span> <span class="o">=</span> <span class="n">ImageTk</span><span class="p">.</span><span class="n">PhotoImage</span><span class="p">(</span><span class="n">img</span><span class="p">.</span><span class="n">resize</span><span class="p">((</span><span class="mi">600</span><span class="p">,</span> <span class="mi">600</span><span class="p">)))</span>
+
+        <span class="c1"># Create canvas_img or use the existing
+</span>        <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">canvas_img</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">canvas_img</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">canvas</span><span class="p">.</span><span class="n">create_image</span><span class="p">(</span>
+                <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">photo_img</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">canvas</span><span class="p">.</span><span class="n">itemconfig</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">canvas_img</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">photo_img</span><span class="p">)</span>
+
+        <span class="c1"># Draw again in 30 ms
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">canvas</span><span class="p">.</span><span class="n">after</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">draw</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="附件主要代码">附件：主要代码</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_ip_address</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_proxy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">False</span><span class="p">):</span>
+    <span class="s">'''
+    Get my IP or the VPN IP address.
+
+        url = 'https://checkip.amazonaws.com/'
+
+    Args:
+        use_proxy: bool. Whether to use the proxy.
+
+    Returns:
+        The IP address or the VPN IP address.
+    '''</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="s">'https://checkip.amazonaws.com/'</span>
+    <span class="k">if</span> <span class="n">use_proxy</span><span class="p">:</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">proxies</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">proxies</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="n">resp</span><span class="p">.</span><span class="n">content</span><span class="p">.</span><span class="n">decode</span><span class="p">().</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">use_proxy</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s">'Got ip address: </span><span class="si">{</span><span class="n">address</span><span class="si">}</span><span class="s">, proxy: </span><span class="si">{</span><span class="bp">self</span><span class="p">.</span><span class="n">proxies</span><span class="si">}</span><span class="s">'</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s">'Got ip address: </span><span class="si">{</span><span class="n">address</span><span class="si">}</span><span class="s">, without proxy'</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">address</span>
+
+<span class="k">def</span> <span class="nf">get_location</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ip_address</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="s">'''
+Get the location of the ip_address.
+
+    url = f'http://ip-api.com/json/{ip_address}'
+
+Args:
+    ip_address: str. The IP address, like 108.181.24.77
+
+Returns:
+    The dict of the location information, for example
+    {
+        'status': 'success',
+        'country': 'United States',
+        'countryCode': 'US',
+        'region': 'CA',
+        'regionName': 'California',
+        'city': 'Los Angeles',
+        'zip': '90060',
+        'lat': 34.0544,
+        'lon': -118.2441,
+        'timezone': 'America/Los_Angeles',
+        'isp': 'Psychz Networks',
+        'org': 'TELUS Communications Inc.',
+        'as': 'AS40676 Psychz Networks',
+        'query': '108.181.24.77'
+    }
+'''</span>
+<span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s">'http://ip-api.com/json/</span><span class="si">{</span><span class="n">ip_address</span><span class="si">}</span><span class="s">'</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="n">loads</span><span class="p">(</span><span class="n">resp</span><span class="p">.</span><span class="n">content</span><span class="p">)</span>
+<span class="n">logger</span><span class="p">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s">'Got location </span><span class="si">{</span><span class="n">obj</span><span class="si">}</span><span class="s"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s">'</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">obj</span>
+
+<span class="k">def</span> <span class="nf">get_img</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lat</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lon</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">zoom</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">600</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">600</span><span class="p">):</span>
+    <span class="s">'''
+    Get image from mapbox
+        Reference: https://docs.mapbox.com/api/maps/static-images/
+        Template: https://api.mapbox.com/styles/v1/{username}/{style_id}/static/{overlay}/{lon},{lat},{zoom},{bearing},{pitch}|{bbox}|{auto}/{width}x{height}{@2x}
+
+    Args:
+        lat: float, The latitude of the center.
+        lon: float, The longitude of the center.
+        zoom: int, The zoom level of the image.
+
+    Returns:
+        The received image.
+        When failed, return the alt_img.
+    '''</span>
+    <span class="n">token</span> <span class="o">=</span> <span class="sa">f</span><span class="s">'access_token=</span><span class="si">{</span><span class="bp">self</span><span class="p">.</span><span class="n">mapbox_access_token</span><span class="si">}</span><span class="s">'</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s">"https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/</span><span class="si">{</span><span class="n">lon</span><span class="si">}</span><span class="s">,</span><span class="si">{</span><span class="n">lat</span><span class="si">}</span><span class="s">,</span><span class="si">{</span><span class="n">zoom</span><span class="si">}</span><span class="s">,20/</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s">x</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s">?</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s">"</span>
+    <span class="n">logger</span><span class="p">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s">'Requesting </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s">'</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">headers</span><span class="p">,</span>
+                            <span class="n">stream</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">buf</span> <span class="o">=</span> <span class="n">io</span><span class="p">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">resp</span><span class="p">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="p">.</span><span class="nb">open</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+        <span class="n">logger</span><span class="p">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s">'Got </span><span class="si">{</span><span class="n">img</span><span class="si">}</span><span class="s"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s">'</span><span class="p">)</span>
+    <span class="k">except</span> <span class="nb">Exception</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">.</span><span class="n">error</span><span class="p">(</span><span class="s">'Failed got img'</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">alt_img</span><span class="p">.</span><span class="n">resize</span><span class="p">((</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">img</span>
+</code></pre></div></div>]]></content><author><name>listenzcc</name></author><category term="IT" /><category term="Application" /><summary type="html"><![CDATA[这是一个基于 tkinter 的桌面 GUI 程序，它调用公共 API 定位你和你的代理（也称为梯子）所在的位置，并且 mapbox 将位置绘制在地图上。你的代理的位置很重要，因为有些厂商（比如 apple）不允许特定地区（比如 Russia）的代理登陆，这会极大降低你的翻墙体验。]]></summary></entry><entry><title type="html">美国两党在参众两院的席位数量趋势</title><link href="/book/news/2024/11/11/%E7%BE%8E%E5%9B%BD%E4%B8%A4%E5%85%9A%E5%9C%A8%E5%8F%82%E4%BC%97%E4%B8%A4%E9%99%A2%E7%9A%84%E5%B8%AD%E4%BD%8D%E6%95%B0%E9%87%8F%E8%B6%8B%E5%8A%BF-13bdc9c70914803fb4abd28fa21b635c.html" rel="alternate" type="text/html" title="美国两党在参众两院的席位数量趋势" /><published>2024-11-11T00:00:00+00:00</published><updated>2024-11-11T00:00:00+00:00</updated><id>/book/news/2024/11/11/%E7%BE%8E%E5%9B%BD%E4%B8%A4%E5%85%9A%E5%9C%A8%E5%8F%82%E4%BC%97%E4%B8%A4%E9%99%A2%E7%9A%84%E5%B8%AD%E4%BD%8D%E6%95%B0%E9%87%8F%E8%B6%8B%E5%8A%BF%2013bdc9c70914803fb4abd28fa21b635c</id><content type="html" xml:base="/book/news/2024/11/11/%E7%BE%8E%E5%9B%BD%E4%B8%A4%E5%85%9A%E5%9C%A8%E5%8F%82%E4%BC%97%E4%B8%A4%E9%99%A2%E7%9A%84%E5%B8%AD%E4%BD%8D%E6%95%B0%E9%87%8F%E8%B6%8B%E5%8A%BF-13bdc9c70914803fb4abd28fa21b635c.html"><![CDATA[<p>本文从两党在两院中的席位数量解释了美国在这一届民主党任期内怪事不断的原因：掌管白宫的和掌管两院的是两拨人，这能不乱就怪了！另外，从两党席位数量靠近的程度来看，由于席位数量彼此接近，因此，近几年内，美国内部也不会很团结。（民主的绝对多数在这种情况下几乎就是个笑话。）</p>
+
+<p>[toc]</p>
+
+<h2 id="多数带来的误解">多数带来的误解</h2>
+
+<p>这其实是民主制的一个问题。假设有<code class="language-plaintext highlighter-rouge">100</code>人投票，规定多数者胜，那么获得多数支持即可获胜。但多数这个数值就很有意思，因为<code class="language-plaintext highlighter-rouge">99</code>是多数，<code class="language-plaintext highlighter-rouge">51</code>也是多数。假设获得了<code class="language-plaintext highlighter-rouge">99</code>的多数，那么可以说剩下的<code class="language-plaintext highlighter-rouge">1</code>是少数派，力量有限；假设只获得了<code class="language-plaintext highlighter-rouge">51</code>的多数，那么余下的<code class="language-plaintext highlighter-rouge">49</code>，你就很难统一他们的思想和预测他们的行为。</p>
+
+<p>不难发现，多数的边界很模糊。这导致民主多数不必然导向团结的结果。</p>
+
+<h2 id="多数不代表团结">多数不代表团结</h2>
+
+<p>为了将以上问题实例化，我搜集了美国参、众两院席位数量年表（见参考材料），从中提取出了民主党（democrats）和共和党（republicans）在其中的席位数量，并将它们绘制在下图中。图中反映了三个信息</p>
+
+<ul>
+  <li>首先，从 1850 年至今，美国参议院（senate）的席位数量基本保持稳定，且席位数量较少。在有限的席位中，两党保持轮流长期坐庄的状态。二战及之后一段时间（1930s~1990s）民主党占多数；而近期（2000 年之后）共和党占多数的时间较长。</li>
+  <li>其次，民主党占多数时，领先的席位数量较多；近期两党的席位数量比较胶着，多数地位易手也较为频繁。</li>
+  <li>再次，众议院（House of representatives）的席位数量到 1900s 之前一直在稳步增加，近百年来则保持稳定。</li>
+  <li>最后，众议院与参议院的趋势相似，近代以来，民主党更占据优势；但近期共和党开始抬头。与参议院相同的，在近几年中，众议院中两党席位的差距也越来越小，甚至达到了势均力敌的水平。</li>
+</ul>
+
+<p><img src="/assets/%E7%BE%8E%E5%9B%BD%E4%B8%A4%E5%85%9A%E5%9C%A8%E5%8F%82%E4%BC%97%E4%B8%A4%E9%99%A2%E7%9A%84%E5%B8%AD%E4%BD%8D%E6%95%B0%E9%87%8F%E8%B6%8B%E5%8A%BF%2013bdc9c70914803fb4abd28fa21b635c/timeline.png" alt="timeline.png" /></p>
+
+<p>接下来，我还将两党在两院分别占多数的时间进行交叉比对，得到协方差矩阵如下图。左图为全部时间的统计结果，右图为 2000 年后的统计结果。所谓协方差可以代表某事件发生时另一事件发生的权重，值越大代表权重越高，因此从图中可以得到两点结论</p>
+
+<ul>
+  <li>首先，总体来看，美国是两党轮流坐庄，即两院同属于民主党或同属于共和党的概率都达到了<code class="language-plaintext highlighter-rouge">36%</code>以上，这代表美国两院分别由不同政党控制的时间比较短，（两党碰撞也最激烈）。</li>
+  <li>另外，在 2000 年之后，共和党独霸两院的时间比例达到了<code class="language-plaintext highlighter-rouge">50%</code>，其控制参议院的比例甚至达到了<code class="language-plaintext highlighter-rouge">75%</code>，而民主党在两院中占多数的时间降到了个位数，仅有<code class="language-plaintext highlighter-rouge">8%</code>。</li>
+</ul>
+
+<p>这也部分解释了美国在这一届民主党任期内怪事不断的原因：掌管白宫的和掌管两院的是两拨人，这能不乱就怪了！</p>
+
+<p>另外，从两党席位数量靠近的程度来看，由于席位数量彼此接近，因此，近几年内，美国内部也不会很团结。（民主的绝对多数在这种情况下几乎就是个笑话。）</p>
+
+<p><img src="/assets/%E7%BE%8E%E5%9B%BD%E4%B8%A4%E5%85%9A%E5%9C%A8%E5%8F%82%E4%BC%97%E4%B8%A4%E9%99%A2%E7%9A%84%E5%B8%AD%E4%BD%8D%E6%95%B0%E9%87%8F%E8%B6%8B%E5%8A%BF%2013bdc9c70914803fb4abd28fa21b635c/coef.png" alt="coef.png" /></p>
+
+<h2 id="参考材料">参考材料</h2>
+
+<p>Senate: <a href="https://www.senate.gov/history/partydiv.htm">https://www.senate.gov/history/partydiv.htm</a></p>
+
+<p>House of representatives: <a href="https://history.house.gov/Institution/Party-Divisions/Party-Divisions">https://history.house.gov/Institution/Party-Divisions/Party-Divisions</a></p>]]></content><author><name>listenzcc</name></author><category term="News" /><summary type="html"><![CDATA[本文从两党在两院中的席位数量解释了美国在这一届民主党任期内怪事不断的原因：掌管白宫的和掌管两院的是两拨人，这能不乱就怪了！另外，从两党席位数量靠近的程度来看，由于席位数量彼此接近，因此，近几年内，美国内部也不会很团结。（民主的绝对多数在这种情况下几乎就是个笑话。）]]></summary></entry><entry><title type="html">用度量的方法挖掘时间数据</title><link href="/book/news/2024/11/05/%E7%94%A8%E5%BA%A6%E9%87%8F%E7%9A%84%E6%96%B9%E6%B3%95%E6%8C%96%E6%8E%98%E6%97%B6%E9%97%B4%E6%95%B0%E6%8D%AE.html" rel="alternate" type="text/html" title="用度量的方法挖掘时间数据" /><published>2024-11-05T00:00:00+00:00</published><updated>2024-11-05T00:00:00+00:00</updated><id>/book/news/2024/11/05/%E7%94%A8%E5%BA%A6%E9%87%8F%E7%9A%84%E6%96%B9%E6%B3%95%E6%8C%96%E6%8E%98%E6%97%B6%E9%97%B4%E6%95%B0%E6%8D%AE</id><content type="html" xml:base="/book/news/2024/11/05/%E7%94%A8%E5%BA%A6%E9%87%8F%E7%9A%84%E6%96%B9%E6%B3%95%E6%8C%96%E6%8E%98%E6%97%B6%E9%97%B4%E6%95%B0%E6%8D%AE.html"><![CDATA[<p>本文使用模拟采样和度量分析的方法对“第三次全国时间利用调查公报”的数据进行深入挖掘。得出的分析结果与日常生活的经验，或者说刻板印象是符合的，比如学生不事生产，从事家务较多的人分身乏术等等。纯数值模拟竟然能与客观实际相互符合，这十分有趣。</p>
+
+<p>[toc]</p>
+
+<h2 id="公开报表">公开报表</h2>
+
+<p>这些是从公开报表中提取的已知信息，这些信息包括中国人从事 6 项活动的平均时间（<code class="language-plaintext highlighter-rouge">timesStr</code>）和参与率（<code class="language-plaintext highlighter-rouge">participantRatio</code>），其中参与率表示每 100 人中有多少人参与了这项活动。比如，有酬劳动的参与率为<code class="language-plaintext highlighter-rouge">54.1</code>代表参与调研的人员中有 $51.1\%$的人参与了这项活动。另外，平均时间是以时-分的形式表示的，因此需要以小数的形式换算为小时（<code class="language-plaintext highlighter-rouge">spendHours</code>）。比如，12 小时 27 分钟对应$12.45$小时。</p>
+
+<p><img src="/assets/%E7%94%A8%E5%BA%A6%E9%87%8F%E7%9A%84%E6%96%B9%E6%B3%95%E6%8C%96%E6%8E%98%E6%97%B6%E9%97%B4%E6%95%B0%E6%8D%AE%20135dc9c7091480468ab8daf0b1951772/image.png" alt="image.png" /></p>
+
+<h2 id="挖掘目标与结果">挖掘目标与结果</h2>
+
+<p>这张表格的形式相当不令人满意，因为它除了提供了时间的边缘分布之外没有提供其他信息。所谓其他信息是一种联合信息，即花时间从事某项活动的人还花时间做了哪些其他的事情。比如人除了从事基本的生理活动之外，还可以在同一天从事劳动、学习、交通、自由支配等。</p>
+
+<p>好在每个人一天的时间都是<code class="language-plaintext highlighter-rouge">24</code>小时，因此我也许有办法通过数值模拟的方法，从已有的公开信息中把感兴趣的联合信息提取出来。</p>
+
+<h2 id="模拟与度量分析">模拟与度量分析</h2>
+
+<p>简单来讲，我采取的是生成模拟数据并随机采样的方法，利用符合约束的模拟数据回推联合特征。</p>
+
+<h3 id="生成模拟数据与随机采样">生成模拟数据与随机采样</h3>
+
+<p>首先，我们已知的是从事某个活动的平均时间和参与率，从这两个指标中可以得到若干维度的信息，并生成对应的数值</p>
+
+<ul>
+  <li>首先，建立一个样本数量是 $N=10000$人的总体，每个人相互独立；</li>
+  <li>其次，对于某项活动来讲，可以按参与率 $r_i$计算出参与这项活动的人数 $n_i=N \times r_i$；</li>
+  <li>再次，假设这些人参与这项活动所花的时间服从正态分布 $t_i \sim \mathcal{N}(m_i, \delta_i^2)$，均值已知，方差未知。由于公开数据中完全不含有方差信息，因此我可以指定某个值作为方差。</li>
+</ul>
+
+<p>这样生成的模拟数据用矩阵表示</p>
+
+\[\tag{1} X \in \mathcal{R}^{N \times 6}\]
+
+<p>矩阵中的每个元素代表这名成员在该项活动中所花费的时间</p>
+
+\[x_{ij} \sim \mathcal{N}(m_i, \delta_i^2)\]
+
+<p>为了方便起见，我首先将它们有序排列起来，如左图所示，颜色越亮代表所花费的时间越长，颜色越黑代表越短。</p>
+
+<p>另外，我还能按每项活动对数据进行<code class="language-plaintext highlighter-rouge">shuffle</code>（随机地重新排序），如右图所示。经过<code class="language-plaintext highlighter-rouge">shuffle</code>之后的数据开始具有了一项非常有意思的特性，那就是矩阵按列相加得到的和数有可能等于 24</p>
+
+\[\sum_{j=1}^{6} x_{ij} = 24 \text{(hours)}\]
+
+<p>不难发现，这些行代表这些成员一天的时间“恰好”被这些活动占满。</p>
+
+<p><img src="/assets/%E7%94%A8%E5%BA%A6%E9%87%8F%E7%9A%84%E6%96%B9%E6%B3%95%E6%8C%96%E6%8E%98%E6%97%B6%E9%97%B4%E6%95%B0%E6%8D%AE%20135dc9c7091480468ab8daf0b1951772/image%201.png" alt="image.png" /></p>
+
+<h3 id="采样结果归一化">采样结果归一化</h3>
+
+<p>我将这些行单独提取出来形成新的矩阵（<code class="language-plaintext highlighter-rouge">Good matrix</code>），得到左图矩阵。不难发现，在该矩阵中全部成员在各项活动中所花的时间与公开数据中的分布基本一致。进一步地，我还将矩阵按列进行归一化，目的是消除不同活动之间的绝对值差异。</p>
+
+<p><img src="/assets/%E7%94%A8%E5%BA%A6%E9%87%8F%E7%9A%84%E6%96%B9%E6%B3%95%E6%8C%96%E6%8E%98%E6%97%B6%E9%97%B4%E6%95%B0%E6%8D%AE%20135dc9c7091480468ab8daf0b1951772/image%202.png" alt="image.png" /></p>
+
+<p><img src="/assets/%E7%94%A8%E5%BA%A6%E9%87%8F%E7%9A%84%E6%96%B9%E6%B3%95%E6%8C%96%E6%8E%98%E6%97%B6%E9%97%B4%E6%95%B0%E6%8D%AE%20135dc9c7091480468ab8daf0b1951772/image%203.png" alt="image.png" /></p>
+
+<h3 id="度量分析">度量分析</h3>
+
+<p>接下来计算各列的内积，并对内和进行归一化</p>
+
+\[C_{ij} = \frac{X_{\cdot i}^T \cdot X_{\cdot j}}{X_{\cdot j}^T \cdot X_{\cdot j}}\]
+
+<p>将活动之间的系数绘制成如下矩阵，它代表从事了某项活动（行）的成员，从事另一项活动（列）的比重，表现为参与概率较低或参与时间较少。从下图可以得到一些有意思的发现</p>
+
+<ul>
+  <li>首先，从事有酬劳动的成员几乎不参与，或者说没有时间参与学习培训；</li>
+  <li>其次，进行学习培训的成员几乎参与其他活动的比重也较小，尤其与有酬劳动互斥；</li>
+  <li>以上二者分别代表上班族和学生的一般状态；</li>
+  <li>而自由支配时间较多的成员则比较多地参与其他活动；</li>
+  <li>与之相对地，进行无酬劳动（<strong>无酬劳动领域包括家务劳动、陪伴照料家人、购买商品或服务等活动大类以及劳动就业活动大类中的无酬实习等就业活动、社会交往大类中的公益志愿活动</strong>）较多的成员则较少地参与其他活动。</li>
+</ul>
+
+<p>我认为分析结果与日常生活的经验，或者说刻板印象是符合的，这很有意思。</p>
+
+<p><img src="/assets/%E7%94%A8%E5%BA%A6%E9%87%8F%E7%9A%84%E6%96%B9%E6%B3%95%E6%8C%96%E6%8E%98%E6%97%B6%E9%97%B4%E6%95%B0%E6%8D%AE%20135dc9c7091480468ab8daf0b1951772/image%204.png" alt="image.png" /></p>]]></content><author><name>listenzcc</name></author><category term="News" /><summary type="html"><![CDATA[本文使用模拟采样和度量分析的方法对“第三次全国时间利用调查公报”的数据进行深入挖掘。得出的分析结果与日常生活的经验，或者说刻板印象是符合的，比如学生不事生产，从事家务较多的人分身乏术等等。纯数值模拟竟然能与客观实际相互符合，这十分有趣。]]></summary></entry><entry><title type="html">时间都去哪了？全国时间利用调查公报</title><link href="/book/news/2024/11/03/%E6%97%B6%E9%97%B4%E9%83%BD%E5%8E%BB%E5%93%AA%E4%BA%86-%E5%85%A8%E5%9B%BD%E6%97%B6%E9%97%B4%E5%88%A9%E7%94%A8%E8%B0%83%E6%9F%A5%E5%85%AC%E6%8A%A5-133dc9c70914802db4e6d007f14067b6.html" rel="alternate" type="text/html" title="时间都去哪了？全国时间利用调查公报" /><published>2024-11-03T00:00:00+00:00</published><updated>2024-11-03T00:00:00+00:00</updated><id>/book/news/2024/11/03/%E6%97%B6%E9%97%B4%E9%83%BD%E5%8E%BB%E5%93%AA%E4%BA%86%EF%BC%9F%E5%85%A8%E5%9B%BD%E6%97%B6%E9%97%B4%E5%88%A9%E7%94%A8%E8%B0%83%E6%9F%A5%E5%85%AC%E6%8A%A5%20133dc9c70914802db4e6d007f14067b6</id><content type="html" xml:base="/book/news/2024/11/03/%E6%97%B6%E9%97%B4%E9%83%BD%E5%8E%BB%E5%93%AA%E4%BA%86-%E5%85%A8%E5%9B%BD%E6%97%B6%E9%97%B4%E5%88%A9%E7%94%A8%E8%B0%83%E6%9F%A5%E5%85%AC%E6%8A%A5-133dc9c70914802db4e6d007f14067b6.html"><![CDATA[<p>2024 年 10 月 31 日，国家统计局发布了“<strong>第三次全国时间利用调查公报（第二号）</strong>”，其中的内容十分有趣。一名普通劳动者每个工作日留给自己的时间是<code class="language-plaintext highlighter-rouge">1小时35分钟</code>。好好利用吧，因为根据“一万小时定律”，你需要花 30 年的时间才能有所收获。</p>
+
+<p>另外，我还发现适龄劳动人口有 8%未参与有酬劳动，但他们还强于<code class="language-plaintext highlighter-rouge">2.7%</code>的人口，他们没有失业，但他们的劳动是无酬的。怎么样，感恩不？</p>
+
+<hr />
+
+<p>[toc]</p>
+
+<h2 id="适龄劳动人口有-8未参与有酬劳动">适龄劳动人口有 8%未参与有酬劳动</h2>
+
+<p>根据国家统计局发布的统计数据，2022 年末“16—59 岁劳动年龄人口为 87556 万人，占<code class="language-plaintext highlighter-rouge">62.0%</code>”，这个数字在 2 年内不会有大的变化，因此即使在 2024 年，我也按此值进行估算。</p>
+
+<p>公报表明有酬劳动的参与率为<code class="language-plaintext highlighter-rouge">54.1%</code>。也就是说，有<code class="language-plaintext highlighter-rouge">7.9%</code>的劳动年龄人口未参与有酬劳动。但“全国城镇调查失业率为<code class="language-plaintext highlighter-rouge">5.3%</code>”，按这个口径来说，全国有约<code class="language-plaintext highlighter-rouge">2.7%</code>的人口没有失业，但他们的劳动是无酬的，换算成数字约为</p>
+
+\[N_{\text{nopay}} \approx 140000 \times 2.7\%=3780 \text{(万人)}\]
+
+<h2 id="参与者平均日工作时长达到-9-小时">参与者平均日工作时长达到 9 小时</h2>
+
+<p>参与“有酬劳动领域包括劳动就业活动大类中除无酬实习等就业活动外的其他活动类别”活动的人，按双休计算，他的每日工作时间为</p>
+
+\[T_1 = (6 + \frac{23}{60}) \times \frac{7}{5} = 8.9367 \text{(小时)} = 8 \text{小时} 56 \text{分钟}\]
+
+<h2 id="你还剩下几个小时">你还剩下几个小时？</h2>
+
+<p>从公报是看，个人生理必需活动领域的平均时间为<code class="language-plaintext highlighter-rouge">12小时27分钟</code>。一名普通劳动者，工作时间将占据<code class="language-plaintext highlighter-rouge">8小时56分钟</code>，剩下<code class="language-plaintext highlighter-rouge">2小时37分钟</code>。平均交通活动时间为<code class="language-plaintext highlighter-rouge">1小时2分钟</code>，那么他还剩下<code class="language-plaintext highlighter-rouge">1小时35分钟</code>。</p>
+
+<p>也就是说，一名普通劳动者每个工作日留给自己的时间是<code class="language-plaintext highlighter-rouge">1小时35分钟</code>。</p>
+
+<p>根据“一万小时定律”，一名普通劳动者想要利用“part time”掌握某个领域的知识的话，他需要花 30 年的时间。这也解释了为啥中文互联网的现状是“5 分钟内看懂 XXX”，因为真的是没有时间。</p>
+
+<h2 id="附录数据及来源">附录：数据及来源</h2>
+
+<p><img src="/assets/%E6%97%B6%E9%97%B4%E9%83%BD%E5%8E%BB%E5%93%AA%E4%BA%86%EF%BC%9F%E5%85%A8%E5%9B%BD%E6%97%B6%E9%97%B4%E5%88%A9%E7%94%A8%E8%B0%83%E6%9F%A5%E5%85%AC%E6%8A%A5%20133dc9c70914802db4e6d007f14067b6/image.png" alt="image.png" /></p>
+
+<p><a href="https://www.stats.gov.cn/xxgk/jd/sjjd2020/202301/t20230118_1892285.html">https://www.stats.gov.cn/xxgk/jd/sjjd2020/202301/t20230118_1892285.html</a></p>
+
+<p><img src="/assets/%E6%97%B6%E9%97%B4%E9%83%BD%E5%8E%BB%E5%93%AA%E4%BA%86%EF%BC%9F%E5%85%A8%E5%9B%BD%E6%97%B6%E9%97%B4%E5%88%A9%E7%94%A8%E8%B0%83%E6%9F%A5%E5%85%AC%E6%8A%A5%20133dc9c70914802db4e6d007f14067b6/image%201.png" alt="image.png" /></p>
+
+<p><a href="https://www.stats.gov.cn/sj/zxfb/202410/t20241031_1957216.html">https://www.stats.gov.cn/sj/zxfb/202410/t20241031_1957216.html</a></p>
+
+<p><img src="/assets/%E6%97%B6%E9%97%B4%E9%83%BD%E5%8E%BB%E5%93%AA%E4%BA%86%EF%BC%9F%E5%85%A8%E5%9B%BD%E6%97%B6%E9%97%B4%E5%88%A9%E7%94%A8%E8%B0%83%E6%9F%A5%E5%85%AC%E6%8A%A5%20133dc9c70914802db4e6d007f14067b6/image%202.png" alt="image.png" /></p>
+
+<p><a href="https://www.gov.cn/zhengce/202409/content_6974666.htm">国务院新闻办发布会介绍 2024 年 8 月份国民经济运行情况<em>政策解读</em>中国政府网</a></p>]]></content><author><name>listenzcc</name></author><category term="News" /><summary type="html"><![CDATA[2024 年 10 月 31 日，国家统计局发布了“第三次全国时间利用调查公报（第二号）”，其中的内容十分有趣。一名普通劳动者每个工作日留给自己的时间是1小时35分钟。好好利用吧，因为根据“一万小时定律”，你需要花 30 年的时间才能有所收获。]]></summary></entry><entry><title type="html">TCP准时同步的可行性实验</title><link href="/book/it/tcp/2024/10/31/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C-130dc9c7091480d3b07fc37fd1bdf712.html" rel="alternate" type="text/html" title="TCP准时同步的可行性实验" /><published>2024-10-31T00:00:00+00:00</published><updated>2024-10-31T00:00:00+00:00</updated><id>/book/it/tcp/2024/10/31/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C%20130dc9c7091480d3b07fc37fd1bdf712</id><content type="html" xml:base="/book/it/tcp/2024/10/31/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C-130dc9c7091480d3b07fc37fd1bdf712.html"><![CDATA[<p>本文进行了简易的 TCP 通信实验，结果表明在网络条件较好的情况下，该通信方式有可能达到准时效果。但该实验同时表明，此通信方式容易受到网络负载的影响。</p>
+
+<p>[toc]</p>
+
+<h2 id="理想情况">理想情况</h2>
+
+<p>这是一个简单的<code class="language-plaintext highlighter-rouge">demo</code>，它利用<code class="language-plaintext highlighter-rouge">python</code>的<code class="language-plaintext highlighter-rouge">socket</code>包进行<code class="language-plaintext highlighter-rouge">TCP/IP</code>通信，通信的双方分别称为近端和远端，其中近端为本地<code class="language-plaintext highlighter-rouge">PC</code>，远端为<code class="language-plaintext highlighter-rouge">Ubuntu</code>服务器。通信过程过程简化如下图，每次信息发送都携带有本地时间戳。</p>
+
+<p><img src="/assets/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C%20130dc9c7091480d3b07fc37fd1bdf712/image.png" alt="image.png" /></p>
+
+<p><img src="data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAXoAAAEJCAIAAAAVdHuoAAAAKnRFWHRjb3B5 bGVmdABHZW5lcmF0ZWQgYnkgaHR0cHM6Ly9wbGFudHVtbC5jb212zsofAAAC WGlUWHRwbGFudHVtbAABAAAAeJzdVU1v2kAQve+vmKqX5EBEqYHGh4oSQloC bUQgl6qHtT2YFetdd702QlX/e8cYghUwgla51JYteebNe/Oxu+4klhubRpK9 sXOMEDLhGa4s46nVKo08NIyFRqcxTIwIQzQQG+1jkrCvyA3Uvr81GPz4CH36 cGGOUmqmtEWQOLMufFHCCi7BFsGsX8R4MkUKWlO4sETp6wiLOALOKXCMPooM g+dIVME2E/JpE2wSqBU0LgQo+aqsPdQ63ljz4A698kJZ57nmZCFUzA2PoMv9 RU6ughsttYH++ioBkjkP9FKoEGZcJljyjIsoo6g37ZL9kzF6WbA5TaflNEu+ vla2wvWIP1NUPg7FjB6FXSoVTQFuXef3AfBd3pfPyAl5AvUavcMdZz1dv0BO 5sJfKFog8I6V+7dB9kQmCAW/GNBVJt+kuzOXmXLrXmW/ywL0tsIXMS3eLfne TFvvnfYx3Z3CZv4Hk7l6oRxwyz2eYIVsvf6C6ojsocJQWWFXlTXdNpuNvydf b5fD1G3KuuecRX1Su7hvtanQ3OM5sxwvp+Lmtbrlk9do+WrsUqJvhVZJpUKz 7/yDAm3BtGrcZ+6OI7P+j38dD5KOl+loCBmahAZFFTfqDefq2kPLWxdTtVB6 qWiSUSwkghURXrKLu4chJDo1PkIgEsrKS/MpX7IBzziMU5XjXPgWoxr07rcG uFWZMFpFdACwwdNoB2g5ta6wdPgaSgOeRqyHM55KSxG+Dugf5cJ00q99YEOu wpSHxI2K3dCsrVmR75H9Abbrkbe2hFgdAAA290lEQVR4Xu2dCVQVV5rHk0y2 7iST9KQTu2e6OzMnnUlyeibtJD3TOX3S50zSh1V22UUBAVkURRQQAYlKVBJj NCZRIzqJaGKiiLjhFncRRWR5CuK+RFRQpNHgCnf+9S6UZRWveDzeUu+973e+ w6n66ta9l6/q+3PvrcerhxhBEIRVeEjuIAiCsAwkNwRBWAmSG4IgrATJjRlo bW3V6XTVNdXWt9ra2ubmZnmHtA06jG4rf5f+G64CroW8PUIzkNz0iytXrmSM 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 448/HjlyZHR09OTJk0+fPi0v0Q/8/PyWL18u99oULjc8GcgsYVK5yTWH4pDc aA6Tl4qfeuop6bvDH3vssR07dsgLmYr0PeI2RBockhtLm0xucvutOCQ3mkP5 rNdI3N3d16xZ09zcXFFR8cILL0Bx3NzcZGWuX7+OAnz7p59+On/+PN/u6OjA Nn5i+969e5WVlfv27ZN+4EImNyh57NgxyJlYA7h9+3ZVVVV1dfWdO3dE5+XL l9FQS0sLCv/444/cWV9fj/pl3/jTY7sypMEhubG0KeUmt3+KQ3KjOUyWGylB QUGQm4EDB8r8qPyll17i2+np6SjDXwKxa9eu559/HiJy9OjRV1555bXXXnvn nXegWaXdr3aSyg2GGKgZ9bz77ru/+tWvVq9eDSc07ne/+90f//jHP/zhDy+/ /HJtbS0vDA8md/D893//9+OPP15cXIzdN954A6fjJ5SIFzPUrgxj5GbktiUx yz6BjSj6fPT+783+3Crk/dRRO5Yq/X2yrNb9XhEhPb6FdeLVsuz2SqWfm1la N9LG1pQgwmOr5RE2WXFIbjRH/+UGA4oBAwZASqZMmSI71NbW9uijj544cQLb b7311n/+53/OnTsX27m5uYGBgZ2dnW+//XZOTg4vXFJSgnq4IohygzIQjpiY GHEo1Nraip+vv/469IufmJCQ8Oabb6Ik08vNn/70J/4dqejPz372s1mzZmEb Q5vf//73ixcv5nUaaleGMXITNDHZNyFy6GeTh8zM8gjyC0iNn3SvVplLJlvs t7PH6tYo/X2yzJYydH5ia7nykN/I6MRNi5V+bmZp3UhLO7UFnYRwpyg+kmPa 03GSG83RT7lpbGzE0ANa4+3tfffuXflhxv7yl78sWLAAs5vnnntu6dKlvr6+ cGJMMW/evFOnTuHEnTt3VnXz7LPPlpeXM4ncQKpQBq1I68TYBM6mpia+e/Lk SeyeO3eO6eXm008/5X7Mpx555BFxDhUREZGRkYENlXZlGCk3w+ZN5dvp57cJ ZQ6tul+gQzf++MbUunXyEUSnLuPH7fh7ntm8V70wBiY5t6qEjesVWW0HpJVk Xtmbc1s41OOJ/BR0eMLFXYbkBhX6xUdiXIZuoCF4Jl4rR3P8RHjE1rnltFem Hl6LCtF/oefdQzlD/h47Jmvifn86dNA+F8XnjKWWl5cnuT69QHKjOUxeKgaY GWGSgtQNCwuTLqBIwSAiODi4qKjIy8sLAgHRwfDkscceO3bsGBIecuD2IGVl ZUwiNyiD8ZGsTuiI1Hnz5k30Yf/+/UwvN4WFhdy/b9++p556SiyGIdKYMWOY vk5D7cowZqlYKjcY17i4u2J6xXczzm/3jg73iRkyODUeA5/RFSu4H6rklxiF 2c3gtMRBIYOTy75VKew/OpZ/2Cdx42Kf4UPEdtPObkVb0BFDJ0LL3P29kcDe w8Mj5gjzEaXcRP9fvpu3p9fQEBTD6AwejNSwMSgs0C8pOnnPt2Lrufq1FfcA H/9RMWhLWqEhv6GOyZqQ9gcylKpboxzdpHR/5riouKi9vV28KOqQ3DgOu3bt +sUvfoE8Hz9+PJ/I9Aik4Ze//CXmO7Nnz2Z6OZg0adJvf/tbbJ85cwaniwu6 UkS54WXwU3qUD3kuXLjAd+vr68VdY+RGpV0VVORm6Jxc/K3GX/WoghluPoO6 BiyduoAxcdFff8SLJZct9wwJEEYKnTpk5pBZ2V1DgA5d9o2DBgtL5AYjCEgD Rgq8TFTB9ODsMQZP7NQhzzEx4T0Jm5beo9zkKiZT0AKcKA6jxNahpF7DQmJX zOUVhudn8goN+Q12TNGEkZbS9/dNk9w4Ds888wyS9oknnnirm7/97W/yQvrn Rz//+c+ffvppnU6H3dTUVGxHRUXxo++9915QUBBfaoFmbdu27d69e+zBpeL/ /d//DQgI4H/T2traMLFCSTQXHx+PDZQPCQn561//ygsbIzfMcLsqqMiNONR3 9XQXZ1KYWcAztrZk/IlN3DDWGFe/PqNxh5CQV8uklRgqnCtJeFh4/gRIm7Dd ocPoYNSuZYZOTD8nTOvEKQxEyni5ifterx16E1tPP7PVxc1VnFiNayjlFRry G+qYsgkjjeTGKbh6VXgH3IOLJwIQmoce5Pnnn5cX0uPq6jpgwAC+vX79epRc smQJ34V2YJIFAXr11Vcxzxo4cCCflEnl5ty5c++++y7K/Pu//zvGU5s3b2b6 edwbb7zx4osvolFID1+NZkbLjaF2VVCRGz6ZymrdHzp1PLKXLxUj05CHOCo1 pD38rh5uskoMFc59UG6gZR4BPpPuVGNi4jHYd9LdGkMnCjMpXy+x/gmXheQ3 Um6Stn4t7oqto6EHKrzUVaGKv8eOKZsw0khuHJzdu1lEBPunfxLecGtRrl+/ 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 h3ZgF5Myvrt3714uNyUlJWLhHTt28KOoH7sYAVlCbpxTaxjJDdEbNpYb8NFH H2HX18/3/PnzGJuEDwl30a/sFBcXY+SS90EeXxLGIQyCcCgkNATa9PkXn2dk ZMB/6dKl0LBQ+EfEj1i4cCEfLuEnFEopN6gEp8OJPnwx74uw8DCzy40JWuMw q6GWkBuHCQ7BtCA3DccaPDw94PnyS+HhVH19fcaEDFc3Vy4EkKEPP/ywq2RD Q+bETPHQqORR3H/kyJHUcanciaOQIdTZ0v1kSio3YPfu3Xy1GGMovlBtRrkx QWuYAz3rtYTcOExwCGYTuTEGDEMgIidPnsQgpcdDfOok5eLFi/BjsCPzK0EN Op2OrxaZEdO0hjlQRpHcEOpoVG7sDpO1hjlQRpHcEOqYR25wTxx0Yvhn+UzT GuZAGUVyQ6hjHrkhTNYa5kCroYkWkBuHCQ7B+i837e3tifr/CXJm1P9HwXmw hNwQjkR/5YbRTUZ0Q3cCoQ7JDWE26E4g1CG5IcwG3QmEOiQ3tqfBUVZDLXEn OExwCEZyowUc5lmvJe4EhwkOwUhutIBKRu3Zs+f999+PjY2Njo7Ozs6uqqqS l1DQ1NT00ksvtbS0yA9I8PPzW758udzbbyxxJ6gEh7A7rCQ3ra2tOp2uuqba GWxf+b7CwsLr16/Lo2AAlYxyc3N7SMLDDz/8/fffyws9yMWLF1GyublZfkDC n//854ULF8q9/caYO6GvqASHsDssLjdXrlxJm5DO/xPSqSwhIUEeCwOoZNTq 1atra2uhXBDr3/72t9ART09PeSE9165d2759+6lTp2Ryc+/evcrKyn379knl TyY3Z86c2bFjx5EjRzo6OrgHtV29elUsAC5cuHDz5k2pR4n6nWAaKsEh7A6L y834zAwPf5/YFXPHVq9OqXEKiyv+nCuOemREjFwN/ctf/gIdGTZsmPwAYxCL Z5999q233nr11Vfj4+NFuTl69Ogrr7zy2muvvfPOOy+88EJpaSkvL5WbqKio f/u3f3vvvff+9V//9U9/+hNXGYzOXn755c7OTl6mpqbmscceu3z5Mt81hJG/ b58wMjiEXWBZuWlqakLWxa38LJcddh6D4uC3DhgrfMG7SnCM5LvvvvP39/+P //gPiIiLiwtGGbICGJJAUKZOncr0LzUNDQ3lcoPtt99+OycnhxcrKSkZMGDA Tz/9xB6Um/Pnz4v1BAQEZGZmYvvWrVu//OUvt2zZwg8lJSUFBwfzbRX6/8sS jo1l5aa6phopN+ZQkTInHdi43ODnsM+m9F9xPvroI2T+I488AhGBXmzbtk1W oL6+HofEuRLmTVxuMLHCxs6dO6u6wQiovLycPSg3UKWtW7fOmTMHguXj4+Pm 5sb9aWlpQUFBTP8KcJz4ww8/cL8K/fxNCYfHGnKDxFPmpAObKDfYNoviAMxx 3n33XcjH73//e9khzKSefvppcffMmTNcbiA0ECm3BykrK2MPyo23t/d//dd/ vf/++59++ml4eDgOcf/JkyefeOIJTKAWL16MGZk4sVKh/78m4diQ3JjfpHKT 2w/FuXv37p07d8TdjIwM6Mijjz4qKSJw/Phx+MWVXagMlxuuOz/++OODxQVE uYGmQJLa2tq4HzMvUW6Au7t7fn4+ZmQYYYlOFUz4HQmnguTG/CaTm9zeFMfQ aujp06dffPHFyMjI7OzsqKioxx9/nC/fyMsx9uabb6akpGDj9u3bHh4e4lLx e++9hwnRjRs3mH7ShInYvXv3mERuzp49i8I6nY7pZQuTNanclJSUYB6HMY76 Y3URQ79gfzAUHMIesY3cjNy2JKVylTJRLW1Zrfu9IkKyr1coD4kW8n7qqB1L lX7jTSk3uaqKY+hZ76VLl1566aWHukHaDx06FE55OcYOHTr0L//yL7/5zW9+ /etfT5o0SZSbxsZGLy8vTLVeffXV5557buDAgXy4JJ1MjRs37mc/+9nrr7+O aRo0Syo30CbUGRYWJnrU6fG36yeGgkPYI7aRm6CJycPmTVUmqqUts0V4j93E 1nLlIdH8R8cmbChQ+o23sTUlaGVstfy3NqQ46hnV1NRUV1eHYYh0YqUER1Gs tbVVfoCx69ev19fXq3zOGE1gEMEHPlJw4j/+4z9idibzG0L5q/Uf9eAQ9oW2 5GbS3ZrxJzalndyMjV79E6+V59yqyvr7ftQ/4fIuZW2iZV2vEMpc3CWXmw7d +OMbU+vWZbdXioWlcoNqoR1pZ7fmdurEqrLaDkgrz7yyN+d2ldSTdkp4JVbM sk9SFB/J6fHpuDYzasuWLUOGDJEOdnpF5U4wGW0GhzANDcnNuIZSr4hg34RI n7ih3pFhSFp1PzxhMyZ4DQ0ZnBrv5u0Z9/1cWYXcoBfu/t5+I6O9h4dHzMkV 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 " /></p>
+
+<h3 id="远端">远端</h3>
+
+<p>首先，在远端（信息的接收端）接收信息时，将接收到的时间戳（近端的时间）与本地时间进行比较，得到差值如下图所示。</p>
+
+\[\text{Trigger delay} = T_{\text{Far}}(\text{hello}) - T_{\text{Near}}(\text{hello})\]
+
+<p>结果表明进行<code class="language-plaintext highlighter-rouge">100</code>次通信时，差值稳定在<code class="language-plaintext highlighter-rouge">145.78</code>毫秒左右。它代表两机的时间戳绝对值有一定差距，但每次通信的随机延时相对稳定，稳定性用方差表示，标准差大小为<code class="language-plaintext highlighter-rouge">0.09</code>毫秒。</p>
+
+<p><img src="/assets/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C%20130dc9c7091480d3b07fc37fd1bdf712/e337dc2778b9dd1267c8375349b7289.png" alt="e337dc2778b9dd1267c8375349b7289.png" /></p>
+
+<h3 id="近端">近端</h3>
+
+<p>为了度量两机通信的随机延时，我将远端返回的消息进行统计。这个统计在近端进行，对于某一条消息，近端将发送时的时间戳与接收到的回执时的时间戳进行比较。</p>
+
+\[\text{Loop delay} = T_{\text{Near}}(\text{welcome}) - T_{\text{Near}}(\text{hello})\]
+
+<p>结果表明消息从发送到接收回执的延时平均值稳定在<code class="language-plaintext highlighter-rouge">0.69</code>毫秒左右，其最大延时为<code class="language-plaintext highlighter-rouge">1.62</code>毫秒，标准差为<code class="language-plaintext highlighter-rouge">0.47</code>毫秒。这基本满足毫秒级的通信要求。</p>
+
+<p><img src="/assets/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C%20130dc9c7091480d3b07fc37fd1bdf712/e89411346f7a5ee6d6282dca66bc508.png" alt="e89411346f7a5ee6d6282dca66bc508.png" /></p>
+
+<h2 id="网络拥堵情况">网络拥堵情况</h2>
+
+<p>由于<code class="language-plaintext highlighter-rouge">TCP/IP</code>通信需要通过网络通信，因此不可避免地受到网络负载的影响。我通过<code class="language-plaintext highlighter-rouge">scp</code>上传大数据的方法模拟了网络拥堵的极端情况。结果表明在<code class="language-plaintext highlighter-rouge">111.2MB/s</code>的传输速率下，通信最大延时达到了<code class="language-plaintext highlighter-rouge">10</code>毫秒。虽然有办法对该延时进行补偿，但具体部署时还需要注意这类极端情况。</p>
+
+<p><img src="/assets/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C%20130dc9c7091480d3b07fc37fd1bdf712/image%201.png" alt="image.png" /></p>]]></content><author><name>listenzcc</name></author><category term="IT" /><category term="TCP" /><summary type="html"><![CDATA[本文进行了简易的 TCP 通信实验，结果表明在网络条件较好的情况下，该通信方式有可能达到准时效果。但该实验同时表明，此通信方式容易受到网络负载的影响。]]></summary></entry></feed>
