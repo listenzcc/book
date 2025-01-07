@@ -29,7 +29,7 @@ $$\omega T \in (2(n-1)\pi, 2n\pi)$$
 动画中从左向右的曲线代表200长序列的频谱、从右向左的曲线代表800长序列的频谱。结果表明频谱泄露现象与序列总长度无关，而仅与截断位置有关。
 
 <video width="640" controls>
-  <source src="/book/assets/SpectrumLeak.mp4" type="video/mp4">
+  <source src="/book/assets/signal-process/SpectrumLeak.mp4" type="video/mp4">
 </video>
 
 ## 解决 $f(t)(u(t)−u(t−T))$ 的傅里叶变换
