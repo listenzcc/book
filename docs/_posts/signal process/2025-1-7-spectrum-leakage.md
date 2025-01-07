@@ -23,7 +23,7 @@ $$\tag{1} \frac{1}{2\pi}F(\omega)*\left[\left(1 - e^{-j\omega T}\right)\left(\fr
 
 $$\omega T \in (2(n-1)\pi, 2n\pi)$$
 
-![spectrum_leak_pic1](/assets/spectrum_leak_pic1.png)
+![spectrum_leak_pic1](/assets/signal-process/spectrum_leak_pic1.png)
 
 我使用 Manim 动画分别绘制了长度约为`200`和`800`的序列被非整周期截断时的功率谱，动画中的曲线分别是截断位置与整周期相差`0-19`个采样点时的频谱密度曲线，它们不是冲激函数，这就是频谱泄露现象。
 动画中从左向右的曲线代表200长序列的频谱、从右向左的曲线代表800长序列的频谱。结果表明频谱泄露现象与序列总长度无关，而仅与截断位置有关。
