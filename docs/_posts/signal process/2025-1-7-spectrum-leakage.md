@@ -26,25 +26,28 @@ $$\omega T \in (2(n-1)\pi, 2n\pi)$$
 ![spectrum_leak_pic1](/assets/signal-process/spectrum_leak_pic1.png)
 
 我使用 Manim 动画分别绘制了长度约为`200`和`800`的序列被非整周期截断时的功率谱，动画中的曲线分别是截断位置与整周期相差`0-19`个采样点时的频谱密度曲线，它们不是冲激函数，这就是频谱泄露现象。
-动画中从左向右的曲线代表200长序列的频谱、从右向左的曲线代表800长序列的频谱。结果表明频谱泄露现象与序列总长度无关，而仅与截断位置有关。
+动画中从左向右的曲线代表 200 长序列的频谱、从右向左的曲线代表 800 长序列的频谱。结果表明频谱泄露现象与序列总长度无关，而仅与截断位置有关。
 
-<video width="320" height="240" controls>
+<video width="640" controls>
   <source src="/book/assets/signal-process/SpectrumLeak.mp4" type="video/mp4">
 </video>
 
 ## 解决 $f(t)(u(t)−u(t−T))$ 的傅里叶变换
 
 1. **回顾傅里叶变换的相关性质**
-    - **乘积定理**：若$f_1(t)$的傅里叶变换为$F_1(\omega)$，$f_2(t)$的傅里叶变换为$F_2(\omega)$，那么$f_1(t)f_2(t)$的傅里叶变换为$\frac{1}{2\pi}F_1(\omega)*F_2(\omega)$，其中“$*$”表示卷积运算。
-    - **时移性质**：若$f(t)$的傅里叶变换为$F(\omega)$，则$f(t - t_0)$的傅里叶变换为$e^{-j\omega t_0}F(\omega)$。
+
+   - **乘积定理**：若$f_1(t)$的傅里叶变换为$F_1(\omega)$，$f_2(t)$的傅里叶变换为$F_2(\omega)$，那么$f_1(t)f_2(t)$的傅里叶变换为$\frac{1}{2\pi}F_1(\omega)*F_2(\omega)$，其中“$*$”表示卷积运算。
+   - **时移性质**：若$f(t)$的傅里叶变换为$F(\omega)$，则$f(t - t_0)$的傅里叶变换为$e^{-j\omega t_0}F(\omega)$。
 
 2. **求$u(t)$和$u(t - T)$的傅里叶变换**
-    - 已知单位阶跃函数$u(t)$的傅里叶变换$U(\omega)=\frac{1}{j\omega}+\pi\delta(\omega)$。
-    - 对于$u(t - T)$，根据时移性质，其傅里叶变换为$U_T(\omega)=e^{-j\omega T}\left(\frac{1}{j\omega}+\pi\delta(\omega)\right)$。
+
+   - 已知单位阶跃函数$u(t)$的傅里叶变换$U(\omega)=\frac{1}{j\omega}+\pi\delta(\omega)$。
+   - 对于$u(t - T)$，根据时移性质，其傅里叶变换为$U_T(\omega)=e^{-j\omega T}\left(\frac{1}{j\omega}+\pi\delta(\omega)\right)$。
 
 3. **求$f(t)(u(t) - u(t - T))$的傅里叶变换**
-设$f(t)$的傅里叶变换为$F(\omega)$，根据乘积定理，$f(t)(u(t) - u(t - T))$的傅里叶变换为：
-$$\begin{align*}
+   设$f(t)$的傅里叶变换为$F(\omega)$，根据乘积定理，$f(t)(u(t) - u(t - T))$的傅里叶变换为：
+
+$$
 &\frac{1}{2\pi}F(\omega)*\left[U(\omega)-U_T(\omega)\right]\\
 =&\frac{1}{2\pi}F(\omega)*\left[\left(\frac{1}{j\omega}+\pi\delta(\omega)\right)-e^{-j\omega T}\left(\frac{1}{j\omega}+\pi\delta(\omega)\right)\right]\\
 =&\frac{1}{2\pi}F(\omega)*\left[\left(1 - e^{-j\omega T}\right)\left(\frac{1}{j\omega}+\pi\delta(\omega)\right)\right]
@@ -58,18 +61,17 @@ $$\begin{align*}
 
 利用已知的基本信号的傅里叶变换公式以及傅里叶变换的性质来求解$u(t) - u(t - T)$的傅里叶变换，以下是详细的步骤：
 单位阶跃函数$u(t)$的定义为：
-
 $$
+
 u(t)=
 \begin{cases}
 0, & t<0 \\
 1, & t \geq 0
 \end{cases}
+
 $$
-
 单位阶跃函数$u(t)$的傅里叶变换$U(\omega)$为：
-
-$$U(\omega)=\frac{1}{j\omega}+\pi\delta(\omega)$$
+$$
 
 其中$\omega$为角频率，$\delta(\omega)$是狄拉克函数，$j$是虚数单位（$j^2 = -1$）。
 
@@ -95,6 +97,6 @@ F(\omega)&=U(\omega)-U_T(\omega)\\
 \end{align*}
 $$
 
-综上，$u(t) - u(t - T)$的傅里叶变换为$\left(1 - e^{-j\omega T}\right)\left(\frac{1}{j\omega}+\pi\delta(\omega)\right)$。 
+综上，$u(t) - u(t - T)$的傅里叶变换为$\left(1 - e^{-j\omega T}\right)\left(\frac{1}{j\omega}+\pi\delta(\omega)\right)$。
 
 本题可根据傅里叶变换的性质，通过已知函数的傅里叶变换来求解$f(t)(u(t) - u(t - T))$的傅里叶变换。以下是具体步骤：
