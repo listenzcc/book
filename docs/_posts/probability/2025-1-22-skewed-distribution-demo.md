@@ -22,7 +22,7 @@ toc: true
 
 ## 论AI工具之不好用
 
-首先，我最近频繁使用AI工具进行辅助变成，堪称事半功倍。但AI也有不好用的时候。
+首先，我最近频繁使用AI工具进行辅助编程，堪称事半功倍。但AI也有不好用的时候。
 它不好用的场景很多，本文是其中比较典型的一种失效场景，我称为
 
 > 不了解数学原理的AI盲目调用API引起失效。
@@ -58,7 +58,7 @@ def lognormal_pdf(x, mean, median):
 
 在此方法写成之后，AI能够正确地使用它完成以下工作。
 经过`cmf`函数的验证后，我觉得我写的代码和AI的使用逻辑都是正确的。
-下面的分析得到的主要结论是虽然中美两国的户均净资产差距较大，但中位数的约对值是差不多的，这导致美国的贫富差距问题比中国要严重得多。
+下面的分析得到的主要结论是虽然中美两国的户均净资产差距较大，但中位数的绝对值是差不多的，这导致美国的贫富差距问题比中国要严重得多。
 
 This document demonstrates the comparison of log-normal distributions for the USA and China. The log-normal distribution is characterized by its mean and median values.
 
