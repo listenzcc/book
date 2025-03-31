@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<!--
+  Minimal Mistakes Jekyll Theme 4.26.2 by Michael Rose
+  Copyright 2013-2024 Michael Rose - mademistakes.com | @mmistakes
+  Free for personal and commercial use under the MIT license
+  https://github.com/mmistakes/minimal-mistakes/blob/master/LICENSE
+--><html lang="en" class="no-js">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+
+<!-- begin _includes/seo.html --><title>二项分布二三事（三） - Listenzcc talks a lot</title>
+<meta name="description" content="这就是著名的“德国坦克”统计问题。 该问题可以简单地描述成这样一句话：     我面前是一个黑箱，箱子里面的元素按顺序编号。我从中无放回地采样10次，得到的最大标号为100，那么请问这个箱子里的元素数量是多少？   这个问题十分有趣，因为贝叶斯学派和频率学派分别给出了不同的估计结果。 而且两派各有道理。  本文尝试从贝叶斯学派的观点来解释这个问题，之后再尝试记录频率学派的分析结果。  写在前面：     因为这个问题涉及的知识比较繁杂，我目前还没有完全理清楚，因此暂时写出来放在这里。   现阶段想到哪里写到哪里，没有到校对和整理的阶段，因此不同章节的符号使用可能略有不同。   我习惯用vim进行笔记，这个东西（尤其是在输入公式时）对中文输入法并不友好，因此草稿以英文为主。   严格来说这也并不是二项分布问题，但由于组合数的存在，这个问题总是容易与二项分布联系起来。     [toc]  Problem Description  There are $m$ (unknown) items, numbered as $0, 1 \dots m$. Randomly choice $k$ items without replacement. And the maximum number of chosen items is $n$. Find the solution of  [\tag{1} \hat{m} = \arg\max_m \varphi(k, n, m)]  where $\varphi(k, n, m)$ refers the probability of the pair of $(k, n, m)$. Naturally, $m \ge n \ge k$.  Bayesian Analysis  Analysis the $\varphi$, it equals the combination of two things     In prior, select $k$ items from $m$ without replacement.   The maximum number of the chosen items is $n$.   The conditional probability is  [p(n \vert m, k) = \frac{C_{n-1}^{k-1}}{C_m^k}]  where the probability is computed as the division between choosing $k-1$ items from $n-1$ numbers and choosing $k$ items from $m$ total (since $n$ is locked). In theory, the probability follows  [\sum_{n=k}^{m} p(n \vert m, k) = 1]  which satisfiers all the possible $k$. And the joint probability between $m$ and $n$ is drawn below It also derives                 [p(n \vert k) = \sum_{m=n}^{\infty} p(n \vert m, k) p(m       k)]             Probability formula  To find the closed-formula[^closed-formula] for the probability, the key take-away is the $(2)$ of the Lemma 2. [^closed-formula]: https://en.wikipedia.org/wiki/Closed-form_expression  It gives the probability mass function[^probability-mass-function] for the unknown value under observations. [^probability-mass-function]: https://en.wikipedia.org/wiki/Probability_mass_function  Lemma 1  For the large enough $M&gt;m$ we have  [p(m \vert k) = \frac{1}{M-k}]  It shows the $p(m\vert k)$ is irrelevant with $m$, what ever the $M$ is.  $\blacksquare$  Lemma 2  In this section, we use the notions for the better working memory     $t$, the total number which is unknown.   $m$, the obtained maximum number.   $k$, the count of the observations.   Take $T$ is random variable, the credibility of $t$ is  [\tag{2} p(T=t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}]  Using Bayesian probability function, we have  [p(t \vert m, k) = \frac{p(m \vert t, k)p(t \vert k)}{p(m \vert k)}]  Thus, we have  [p(t \vert m, k) = \frac{p(m \vert t, k) p(t \vert k)}{\sum_{\tau=m}^{\infty} p(m \vert \tau, k) p(\tau \vert k)}]  where $\tau$ refers the variable of $t$, and $p(\tau \vert k) = p(t \vert k)$ (see Lemma 1). It consists  [p(t \vert m, k) = \frac{p(m \vert t, k)}{\sum_{\tau=m}^{\infty} p(m \vert \tau, k)}]  In general, we have  [p(m \vert t, k) = \frac{C_{m-1}^{k-1}}{C_t^k}]  and the $t$ can be rewritten as $\tau$  [p(m \vert \tau, k) = \frac{C_{m-1}^{k-1}}{C_\tau^k}]  We notice that  [\frac{C_{m-1}^{k-1}}{C_m^k} = \frac{k}{m}]  and  [\frac{C_{m-1}^{k-1}}{C_{m+1}^k} = \frac{k(m+1-k)}{m(m+1)}]  It produces the series  [\begin{cases} a_0 &amp;=\frac{k}{m} a_x &amp;= a_{x-1} \cdot \frac{m+x-k}{m+x}, x \in [1, 2 \dots] \end{cases}]  The summation is (see Lemma 3)  [\sum_{i=0}^{\infty} a_i = \frac{k}{k-1}]  As a result, the credibility of $t$ is  [p(t\vert m, k) = \frac{p(m \vert t, k)}{\sum_{i=0}^{\infty} a_i}]  It equals to  [p(t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}]  or, in the alignment format  [p(t \vert m, k) = (k-1)C_{m-1}^{k-1} \cdot \begin{pmatrix}k {C_m^k}\end{pmatrix}^{-1}]  $\blacksquare$  Lemma 3  Using Gauss’s Hypergeometric Theorem1 (Gauss’s summation theorem), we have  [\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}]  where $(a)_x = a(a+1)\dots (a+x-1)$. For a special case, we have  [(1)_x = x!]  In my case  [a_x = \frac{k}{m} \cdot \frac{(m+x-k)_x}{(m+1)_x}]  It is transformed to  [a_x = \frac{k}{m} \cdot \frac{(1)_x \cdot (m+1-k)_x}{x! \cdot (m+1)_x}]  As the result, the summation is  [\frac{k}{m} \cdot \frac{\Gamma(m+1)\Gamma(k-1)}{\Gamma(m)\Gamma(k)} = \frac{k}{k-1}]  where  [\begin{cases} a&amp;=1 b&amp;=m+1-k c&amp;=m+1 \end{cases} \Rightarrow \begin{cases} c-a &amp;= m c-b &amp;= k c-a-b &amp;= k-1 \end{cases}]  and  [\begin{cases} n \Gamma(n) &amp;= n! \Gamma(n) &amp;= (n-1)!, n \in \bold{N}^+ \end{cases}]  $\blacksquare$                https://en.wikipedia.org/wiki/Hypergeometric_function ↩">
+
+
+  <meta name="author" content="listenzcc">
+  
+  <meta property="article:author" content="listenzcc">
+  
+
+
+<meta property="og:type" content="article">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Listenzcc talks a lot">
+<meta property="og:title" content="二项分布二三事（三）">
+<meta property="og:url" content="/book/probability/binomial/bayesian/germantank/2024/11/29/german-tank-problem-1.html">
+
+
+  <meta property="og:description" content="这就是著名的“德国坦克”统计问题。 该问题可以简单地描述成这样一句话：     我面前是一个黑箱，箱子里面的元素按顺序编号。我从中无放回地采样10次，得到的最大标号为100，那么请问这个箱子里的元素数量是多少？   这个问题十分有趣，因为贝叶斯学派和频率学派分别给出了不同的估计结果。 而且两派各有道理。  本文尝试从贝叶斯学派的观点来解释这个问题，之后再尝试记录频率学派的分析结果。  写在前面：     因为这个问题涉及的知识比较繁杂，我目前还没有完全理清楚，因此暂时写出来放在这里。   现阶段想到哪里写到哪里，没有到校对和整理的阶段，因此不同章节的符号使用可能略有不同。   我习惯用vim进行笔记，这个东西（尤其是在输入公式时）对中文输入法并不友好，因此草稿以英文为主。   严格来说这也并不是二项分布问题，但由于组合数的存在，这个问题总是容易与二项分布联系起来。     [toc]  Problem Description  There are $m$ (unknown) items, numbered as $0, 1 \dots m$. Randomly choice $k$ items without replacement. And the maximum number of chosen items is $n$. Find the solution of  [\tag{1} \hat{m} = \arg\max_m \varphi(k, n, m)]  where $\varphi(k, n, m)$ refers the probability of the pair of $(k, n, m)$. Naturally, $m \ge n \ge k$.  Bayesian Analysis  Analysis the $\varphi$, it equals the combination of two things     In prior, select $k$ items from $m$ without replacement.   The maximum number of the chosen items is $n$.   The conditional probability is  [p(n \vert m, k) = \frac{C_{n-1}^{k-1}}{C_m^k}]  where the probability is computed as the division between choosing $k-1$ items from $n-1$ numbers and choosing $k$ items from $m$ total (since $n$ is locked). In theory, the probability follows  [\sum_{n=k}^{m} p(n \vert m, k) = 1]  which satisfiers all the possible $k$. And the joint probability between $m$ and $n$ is drawn below It also derives                 [p(n \vert k) = \sum_{m=n}^{\infty} p(n \vert m, k) p(m       k)]             Probability formula  To find the closed-formula[^closed-formula] for the probability, the key take-away is the $(2)$ of the Lemma 2. [^closed-formula]: https://en.wikipedia.org/wiki/Closed-form_expression  It gives the probability mass function[^probability-mass-function] for the unknown value under observations. [^probability-mass-function]: https://en.wikipedia.org/wiki/Probability_mass_function  Lemma 1  For the large enough $M&gt;m$ we have  [p(m \vert k) = \frac{1}{M-k}]  It shows the $p(m\vert k)$ is irrelevant with $m$, what ever the $M$ is.  $\blacksquare$  Lemma 2  In this section, we use the notions for the better working memory     $t$, the total number which is unknown.   $m$, the obtained maximum number.   $k$, the count of the observations.   Take $T$ is random variable, the credibility of $t$ is  [\tag{2} p(T=t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}]  Using Bayesian probability function, we have  [p(t \vert m, k) = \frac{p(m \vert t, k)p(t \vert k)}{p(m \vert k)}]  Thus, we have  [p(t \vert m, k) = \frac{p(m \vert t, k) p(t \vert k)}{\sum_{\tau=m}^{\infty} p(m \vert \tau, k) p(\tau \vert k)}]  where $\tau$ refers the variable of $t$, and $p(\tau \vert k) = p(t \vert k)$ (see Lemma 1). It consists  [p(t \vert m, k) = \frac{p(m \vert t, k)}{\sum_{\tau=m}^{\infty} p(m \vert \tau, k)}]  In general, we have  [p(m \vert t, k) = \frac{C_{m-1}^{k-1}}{C_t^k}]  and the $t$ can be rewritten as $\tau$  [p(m \vert \tau, k) = \frac{C_{m-1}^{k-1}}{C_\tau^k}]  We notice that  [\frac{C_{m-1}^{k-1}}{C_m^k} = \frac{k}{m}]  and  [\frac{C_{m-1}^{k-1}}{C_{m+1}^k} = \frac{k(m+1-k)}{m(m+1)}]  It produces the series  [\begin{cases} a_0 &amp;=\frac{k}{m} a_x &amp;= a_{x-1} \cdot \frac{m+x-k}{m+x}, x \in [1, 2 \dots] \end{cases}]  The summation is (see Lemma 3)  [\sum_{i=0}^{\infty} a_i = \frac{k}{k-1}]  As a result, the credibility of $t$ is  [p(t\vert m, k) = \frac{p(m \vert t, k)}{\sum_{i=0}^{\infty} a_i}]  It equals to  [p(t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}]  or, in the alignment format  [p(t \vert m, k) = (k-1)C_{m-1}^{k-1} \cdot \begin{pmatrix}k {C_m^k}\end{pmatrix}^{-1}]  $\blacksquare$  Lemma 3  Using Gauss’s Hypergeometric Theorem1 (Gauss’s summation theorem), we have  [\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}]  where $(a)_x = a(a+1)\dots (a+x-1)$. For a special case, we have  [(1)_x = x!]  In my case  [a_x = \frac{k}{m} \cdot \frac{(m+x-k)_x}{(m+1)_x}]  It is transformed to  [a_x = \frac{k}{m} \cdot \frac{(1)_x \cdot (m+1-k)_x}{x! \cdot (m+1)_x}]  As the result, the summation is  [\frac{k}{m} \cdot \frac{\Gamma(m+1)\Gamma(k-1)}{\Gamma(m)\Gamma(k)} = \frac{k}{k-1}]  where  [\begin{cases} a&amp;=1 b&amp;=m+1-k c&amp;=m+1 \end{cases} \Rightarrow \begin{cases} c-a &amp;= m c-b &amp;= k c-a-b &amp;= k-1 \end{cases}]  and  [\begin{cases} n \Gamma(n) &amp;= n! \Gamma(n) &amp;= (n-1)!, n \in \bold{N}^+ \end{cases}]  $\blacksquare$                https://en.wikipedia.org/wiki/Hypergeometric_function ↩">
+
+
+
+
+
+
+
+  <meta property="article:published_time" content="2024-11-29T00:00:00+00:00">
+
+
+
+
+
+
+<link rel="canonical" href="/book/probability/binomial/bayesian/germantank/2024/11/29/german-tank-problem-1.html">
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- end _includes/seo.html -->
+
+
+
+  <link href="/book/feed.xml" type="application/atom+xml" rel="alternate" title="Listenzcc talks a lot Feed">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script type="text/javascript">
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+  window.enable_copy_code_button = true;
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/book/assets/css/main.css">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css"></noscript>
+
+
+
+    <!-- start custom head snippets -->
+
+<!-- insert favicons. use https://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+  <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">MathJax.Hub.Config({         tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] }       });</script>
+</head>
+
+  <body class="layout--single">
+    <nav class="skip-links">
+  <ul>
+    <li><a href="#site-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        
+        <a class="site-title" href="/book/">
+          Listenzcc talks a lot
+          
+        </a>
+        <ul class="visible-links">
+<li class="masthead__menu-item">
+              <a href="/book/help-center/">Help</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/search/">Search</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/year-archive/">Posts</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/categories/">Categories</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="https://github.com/listenzcc" target="_blank">External Link</a>
+            </li>
+</ul>
+        
+        <button class="greedy-nav__toggle hidden" type="button">
+          <span class="visually-hidden">Toggle menu</span>
+          <div class="navicon"></div>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+    <div class="initial-content">
+      
+
+
+
+
+  
+    
+
+
+
+<nav class="breadcrumbs">
+  <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+    
+    
+    
+      
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/" itemprop="item"><span itemprop="name">Home</span></a>
+
+          <meta itemprop="position" content="1">
+        </li>
+        <span class="sep">/</span>
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/probability" itemprop="item"><span itemprop="name">Probability</span></a>
+          <meta itemprop="position" content="2">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/binomial" itemprop="item"><span itemprop="name">Binomial</span></a>
+          <meta itemprop="position" content="3">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/bayesian" itemprop="item"><span itemprop="name">Bayesian</span></a>
+          <meta itemprop="position" content="4">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/germantank" itemprop="item"><span itemprop="name">Germantank</span></a>
+          <meta itemprop="position" content="5">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/2024" itemprop="item"><span itemprop="name">2024</span></a>
+          <meta itemprop="position" content="6">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/11" itemprop="item"><span itemprop="name">11</span></a>
+          <meta itemprop="position" content="7">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/29" itemprop="item"><span itemprop="name">29</span></a>
+          <meta itemprop="position" content="8">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        <li class="current">二项分布二三事（三）</li>
+      
+    
+  </ol>
+</nav>
+
+  
+
+
+<div id="main" role="main">
+  
+  <div class="sidebar sticky">
+  
+
+
+<div itemscope itemtype="https://schema.org/Person" class="h-card">
+
+  
+    <div class="author__avatar">
+      <a href="/book/">
+        <img src="/book/assets/profile/bio-photo.jpg" alt="listenzcc" itemprop="image" class="u-photo">
+      </a>
+    </div>
+  
+
+  <div class="author__content">
+    <h3 class="author__name p-name" itemprop="name">
+      <a class="u-url" rel="me" href="/book/" itemprop="url">listenzcc</a>
+    </h3>
+    
+      <div class="author__bio p-note" itemprop="description">
+        <p>I am a programmer.</p>
+
+      </div>
+    
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">Follow</button>
+    <ul class="author__urls social-icons">
+      
+        <li itemprop="homeLocation" itemscope itemtype="https://schema.org/Place">
+          <i class="fas fa-fw fa-map-marker-alt" aria-hidden="true"></i> <span itemprop="name" class="p-locality">Somewhere</span>
+        </li>
+      
+
+      
+        
+          
+            <li><a href="https://github.com/listenzcc" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-fw fa-github" aria-hidden="true"></i><span class="label">GitHub</span></a></li>
+          
+        
+          
+            <li><a href="https://mademistakes.com" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fas fa-fw fa-link" aria-hidden="true"></i><span class="label">Made Mistakes</span></a></li>
+          
+        
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      <!--
+  <li>
+    <a href="http://link-to-whatever-social-network.com/user/" itemprop="sameAs" rel="nofollow noopener noreferrer me">
+      <i class="fas fa-fw" aria-hidden="true"></i> Custom Social Profile Link
+    </a>
+  </li>
+-->
+    </ul>
+  </div>
+</div>
+
+  
+  </div>
+
+
+
+  <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
+    <meta itemprop="headline" content="二项分布二三事（三）">
+    <meta itemprop="description" content="这就是著名的“德国坦克”统计问题。该问题可以简单地描述成这样一句话：  我面前是一个黑箱，箱子里面的元素按顺序编号。我从中无放回地采样10次，得到的最大标号为100，那么请问这个箱子里的元素数量是多少？这个问题十分有趣，因为贝叶斯学派和频率学派分别给出了不同的估计结果。而且两派各有道理。本文尝试从贝叶斯学派的观点来解释这个问题，之后再尝试记录频率学派的分析结果。写在前面：  因为这个问题涉及的知识比较繁杂，我目前还没有完全理清楚，因此暂时写出来放在这里。  现阶段想到哪里写到哪里，没有到校对和整理的阶段，因此不同章节的符号使用可能略有不同。  我习惯用vim进行笔记，这个东西（尤其是在输入公式时）对中文输入法并不友好，因此草稿以英文为主。  严格来说这也并不是二项分布问题，但由于组合数的存在，这个问题总是容易与二项分布联系起来。[toc]Problem DescriptionThere are $m$ (unknown) items, numbered as $0, 1 \dots m$.Randomly choice $k$ items without replacement.And the maximum number of chosen items is $n$.Find the solution of[\tag{1} \hat{m} = \arg\max_m \varphi(k, n, m)]where $\varphi(k, n, m)$ refers the probability of the pair of $(k, n, m)$.Naturally, $m \ge n \ge k$.Bayesian AnalysisAnalysis the $\varphi$, it equals the combination of two things  In prior, select $k$ items from $m$ without replacement.  The maximum number of the chosen items is $n$.The conditional probability is[p(n \vert m, k) = \frac{C_{n-1}^{k-1}}{C_m^k}]where the probability is computed as the division between choosing $k-1$ items from $n-1$ numbers and choosing $k$ items from $m$ total (since $n$ is locked).In theory, the probability follows[\sum_{n=k}^{m} p(n \vert m, k) = 1]which satisfiers all the possible $k$.And the joint probability between $m$ and $n$ is drawn belowIt also derives            [p(n \vert k) = \sum_{m=n}^{\infty} p(n \vert m, k) p(m      k)]      Probability formulaTo find the closed-formula[^closed-formula] for the probability, the key take-away is the $(2)$ of the Lemma 2.[^closed-formula]: https://en.wikipedia.org/wiki/Closed-form_expressionIt gives the probability mass function[^probability-mass-function] for the unknown value under observations.[^probability-mass-function]: https://en.wikipedia.org/wiki/Probability_mass_functionLemma 1For the large enough $M&gt;m$ we have[p(m \vert k) = \frac{1}{M-k}]It shows the $p(m\vert k)$ is irrelevant with $m$, what ever the $M$ is.$\blacksquare$Lemma 2In this section, we use the notions for the better working memory  $t$, the total number which is unknown.  $m$, the obtained maximum number.  $k$, the count of the observations.Take $T$ is random variable, the credibility of $t$ is[\tag{2} p(T=t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}]Using Bayesian probability function, we have[p(t \vert m, k) = \frac{p(m \vert t, k)p(t \vert k)}{p(m \vert k)}]Thus, we have[p(t \vert m, k) = \frac{p(m \vert t, k) p(t \vert k)}{\sum_{\tau=m}^{\infty} p(m \vert \tau, k) p(\tau \vert k)}]where $\tau$ refers the variable of $t$, and $p(\tau \vert k) = p(t \vert k)$ (see Lemma 1). It consists[p(t \vert m, k) = \frac{p(m \vert t, k)}{\sum_{\tau=m}^{\infty} p(m \vert \tau, k)}]In general, we have[p(m \vert t, k) = \frac{C_{m-1}^{k-1}}{C_t^k}]and the $t$ can be rewritten as $\tau$[p(m \vert \tau, k) = \frac{C_{m-1}^{k-1}}{C_\tau^k}]We notice that[\frac{C_{m-1}^{k-1}}{C_m^k} = \frac{k}{m}]and[\frac{C_{m-1}^{k-1}}{C_{m+1}^k} = \frac{k(m+1-k)}{m(m+1)}]It produces the series[\begin{cases}a_0 &amp;=\frac{k}{m}a_x &amp;= a_{x-1} \cdot \frac{m+x-k}{m+x}, x \in [1, 2 \dots]\end{cases}]The summation is (see Lemma 3)[\sum_{i=0}^{\infty} a_i = \frac{k}{k-1}]As a result, the credibility of $t$ is[p(t\vert m, k) = \frac{p(m \vert t, k)}{\sum_{i=0}^{\infty} a_i}]It equals to[p(t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}]or, in the alignment format[p(t \vert m, k) = (k-1)C_{m-1}^{k-1} \cdot \begin{pmatrix}k {C_m^k}\end{pmatrix}^{-1}]$\blacksquare$Lemma 3Using Gauss’s Hypergeometric Theorem1 (Gauss’s summation theorem), we have[\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}]where $(a)_x = a(a+1)\dots (a+x-1)$. For a special case, we have[(1)_x = x!]In my case[a_x = \frac{k}{m} \cdot \frac{(m+x-k)_x}{(m+1)_x}]It is transformed to[a_x = \frac{k}{m} \cdot \frac{(1)_x \cdot (m+1-k)_x}{x! \cdot (m+1)_x}]As the result, the summation is[\frac{k}{m} \cdot \frac{\Gamma(m+1)\Gamma(k-1)}{\Gamma(m)\Gamma(k)} = \frac{k}{k-1}]where[\begin{cases}a&amp;=1b&amp;=m+1-kc&amp;=m+1\end{cases} \Rightarrow\begin{cases}c-a &amp;= mc-b &amp;= kc-a-b &amp;= k-1\end{cases}]and[\begin{cases}n \Gamma(n) &amp;= n!\Gamma(n) &amp;= (n-1)!, n \in \bold{N}^+\end{cases}]$\blacksquare$            https://en.wikipedia.org/wiki/Hypergeometric_function ↩      ">
+    <meta itemprop="datePublished" content="2024-11-29T00:00:00+00:00">
+    
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 id="page-title" class="page__title" itemprop="headline">
+            <a href="/book/probability/binomial/bayesian/germantank/2024/11/29/german-tank-problem-1.html" itemprop="url">二项分布二三事（三）
+</a>
+          </h1>
+          
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          2 minute read
+        
+      </span>
+    
+  </p>
+
+
+        </header>
+      
+
+      <section class="page__content" itemprop="text">
+        
+          <aside class="sidebar__right sticky">
+            <nav class="toc">
+              <header><h4 class="nav__title">
+<i class="fas fa-music"></i> Table of contents</h4></header>
+              <ul class="toc__menu">
+<li><a href="#problem-description">Problem Description</a></li>
+<li><a href="#bayesian-analysis">Bayesian Analysis</a></li>
+<li>
+<a href="#probability-formula">Probability formula</a><ul>
+<li><a href="#lemma-1">Lemma 1</a></li>
+<li><a href="#lemma-2">Lemma 2</a></li>
+<li><a href="#lemma-3">Lemma 3</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+          </aside>
+        
+        <p>这就是著名的“德国坦克”统计问题。
+该问题可以简单地描述成这样一句话：</p>
+
+<blockquote>
+  <p>我面前是一个黑箱，箱子里面的元素按顺序编号。我从中无放回地采样<code class="language-plaintext highlighter-rouge">10</code>次，得到的最大标号为<code class="language-plaintext highlighter-rouge">100</code>，那么请问这个箱子里的元素数量是多少？</p>
+</blockquote>
+
+<p>这个问题十分有趣，因为贝叶斯学派和频率学派分别给出了不同的估计结果。
+而且两派各有道理。</p>
+
+<p>本文尝试从贝叶斯学派的观点来解释这个问题，之后再尝试记录频率学派的分析结果。</p>
+
+<p>写在前面：</p>
+
+<ol>
+  <li>因为这个问题涉及的知识比较繁杂，我目前还没有完全理清楚，因此暂时写出来放在这里。</li>
+  <li>现阶段想到哪里写到哪里，没有到校对和整理的阶段，因此不同章节的符号使用可能略有不同。</li>
+  <li>我习惯用vim进行笔记，这个东西（尤其是在输入公式时）对中文输入法并不友好，因此草稿以英文为主。</li>
+  <li>严格来说这也并不是二项分布问题，但由于组合数的存在，这个问题总是容易与二项分布联系起来。</li>
+</ol>
+
+<hr>
+
+<p>[toc]</p>
+
+<h2 id="problem-description">Problem Description</h2>
+
+<p>There are $m$ (unknown) items, numbered as $0, 1 \dots m$.
+Randomly choice $k$ items without replacement.
+And the maximum number of chosen items is $n$.
+Find the solution of</p>
+
+\[\tag{1} \hat{m} = \arg\max_m \varphi(k, n, m)\]
+
+<p>where $\varphi(k, n, m)$ refers the probability of the pair of $(k, n, m)$.
+Naturally, $m \ge n \ge k$.</p>
+
+<h2 id="bayesian-analysis">Bayesian Analysis</h2>
+
+<p>Analysis the $\varphi$, it equals the combination of two things</p>
+
+<ol>
+  <li>In prior, select $k$ items from $m$ without replacement.</li>
+  <li>The maximum number of the chosen items is $n$.</li>
+</ol>
+
+<p>The conditional probability is</p>
+
+\[p(n \vert m, k) = \frac{C_{n-1}^{k-1}}{C_m^k}\]
+
+<p>where the probability is computed as the division between choosing $k-1$ items from $n-1$ numbers and choosing $k$ items from $m$ total (since $n$ is locked).
+In theory, the probability follows</p>
+
+\[\sum_{n=k}^{m} p(n \vert m, k) = 1\]
+
+<p>which satisfiers all the possible $k$.
+And the joint probability between $m$ and $n$ is drawn below
+It also derives</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>
+<p>$$p(n \vert k) = \sum_{m=n}^{\infty} p(n \vert m, k) p(m</p>
+</td>
+      <td>
+<p>k)$$</p>
+</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><img src="/assets/binomial-distribution-img/Conditional%20prob%20of%20n%20at%20m%20and%20k=5.png" alt="Conditional prob" title="Conditional prob"></p>
+
+<h2 id="probability-formula">Probability formula</h2>
+
+<p>To find the closed-formula[^closed-formula] for the probability, the key take-away is the $(2)$ of the <a href="#lemma-2">Lemma 2</a>.
+[^closed-formula]: <a href="https://en.wikipedia.org/wiki/Closed-form_expression">https://en.wikipedia.org/wiki/Closed-form_expression</a></p>
+
+<p>It gives the probability mass function[^probability-mass-function] for the unknown value under observations.
+[^probability-mass-function]: <a href="https://en.wikipedia.org/wiki/Probability_mass_function">https://en.wikipedia.org/wiki/Probability_mass_function</a></p>
+
+<h3 id="lemma-1">Lemma 1</h3>
+
+<p>For the large enough $M&gt;m$ we have</p>
+
+\[p(m \vert k) = \frac{1}{M-k}\]
+
+<p>It shows the $p(m\vert k)$ is irrelevant with $m$, what ever the $M$ is.</p>
+
+<p>$\blacksquare$</p>
+
+<h3 id="lemma-2">Lemma 2</h3>
+
+<p>In this section, we use the notions for the better working memory</p>
+
+<ul>
+  <li>$t$, the total number which is unknown.</li>
+  <li>$m$, the obtained maximum number.</li>
+  <li>$k$, the count of the observations.</li>
+</ul>
+
+<p>Take $T$ is random variable, the credibility of $t$ is</p>
+
+\[\tag{2} p(T=t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}\]
+
+<p>Using Bayesian probability function, we have</p>
+
+\[p(t \vert m, k) = \frac{p(m \vert t, k)p(t \vert k)}{p(m \vert k)}\]
+
+<p>Thus, we have</p>
+
+\[p(t \vert m, k) = \frac{p(m \vert t, k) p(t \vert k)}{\sum_{\tau=m}^{\infty} p(m \vert \tau, k) p(\tau \vert k)}\]
+
+<p>where $\tau$ refers the variable of $t$, and $p(\tau \vert k) = p(t \vert k)$ (see <a href="#lemma-1">Lemma 1</a>). It consists</p>
+
+\[p(t \vert m, k) = \frac{p(m \vert t, k)}{\sum_{\tau=m}^{\infty} p(m \vert \tau, k)}\]
+
+<p>In general, we have</p>
+
+\[p(m \vert t, k) = \frac{C_{m-1}^{k-1}}{C_t^k}\]
+
+<p>and the $t$ can be rewritten as $\tau$</p>
+
+\[p(m \vert \tau, k) = \frac{C_{m-1}^{k-1}}{C_\tau^k}\]
+
+<p>We notice that</p>
+
+\[\frac{C_{m-1}^{k-1}}{C_m^k} = \frac{k}{m}\]
+
+<p>and</p>
+
+\[\frac{C_{m-1}^{k-1}}{C_{m+1}^k} = \frac{k(m+1-k)}{m(m+1)}\]
+
+<p>It produces the series</p>
+
+\[\begin{cases}
+a_0 &amp;=\frac{k}{m}\\
+a_x &amp;= a_{x-1} \cdot \frac{m+x-k}{m+x}, x \in [1, 2 \dots]
+\end{cases}\]
+
+<p>The summation is (see <a href="#lemma-3">Lemma 3</a>)</p>
+
+\[\sum_{i=0}^{\infty} a_i = \frac{k}{k-1}\]
+
+<p>As a result, the credibility of $t$ is</p>
+
+\[p(t\vert m, k) = \frac{p(m \vert t, k)}{\sum_{i=0}^{\infty} a_i}\]
+
+<p>It equals to</p>
+
+\[p(t \vert m, k) = \frac{C_{m-1}^{k-1}}{C_t^k} \cdot \frac{k-1}{k}\]
+
+<p>or, in the alignment format</p>
+
+\[p(t \vert m, k) = (k-1)C_{m-1}^{k-1} \cdot \begin{pmatrix}k {C_m^k}\end{pmatrix}^{-1}\]
+
+<p>$\blacksquare$</p>
+
+<h3 id="lemma-3">Lemma 3</h3>
+
+<p>Using Gauss’s Hypergeometric Theorem<sup id="fnref:wiki-ght" role="doc-noteref"><a href="#fn:wiki-ght" class="footnote" rel="footnote">1</a></sup> (Gauss’s summation theorem), we have</p>
+
+\[\sum_{x=0}^\infty \frac{(a)_x(b)_x}{x!(c)_x} = \frac{\Gamma(c)\Gamma(c-a-b)}{\Gamma(c-a)\Gamma(c-b)}\]
+
+<p>where $(a)_x = a(a+1)\dots (a+x-1)$. For a special case, we have</p>
+
+\[(1)_x = x!\]
+
+<p>In my case</p>
+
+\[a_x = \frac{k}{m} \cdot \frac{(m+x-k)_x}{(m+1)_x}\]
+
+<p>It is transformed to</p>
+
+\[a_x = \frac{k}{m} \cdot \frac{(1)_x \cdot (m+1-k)_x}{x! \cdot (m+1)_x}\]
+
+<p>As the result, the summation is</p>
+
+\[\frac{k}{m} \cdot \frac{\Gamma(m+1)\Gamma(k-1)}{\Gamma(m)\Gamma(k)} = \frac{k}{k-1}\]
+
+<p>where</p>
+
+\[\begin{cases}
+a&amp;=1\\
+b&amp;=m+1-k\\
+c&amp;=m+1
+\end{cases} \Rightarrow
+\begin{cases}
+c-a &amp;= m\\
+c-b &amp;= k\\
+c-a-b &amp;= k-1
+\end{cases}\]
+
+<p>and</p>
+
+\[\begin{cases}
+n \Gamma(n) &amp;= n!\\
+\Gamma(n) &amp;= (n-1)!, n \in \bold{N}^+
+\end{cases}\]
+
+<p>$\blacksquare$</p>
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:wiki-ght" role="doc-endnote">
+      <p>https://en.wikipedia.org/wiki/Hypergeometric_function <a href="#fnref:wiki-ght" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+  </ol>
+</div>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+        
+
+  <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time class="dt-published" datetime="2024-11-29T00:00:00+00:00">November 29, 2024</time></p>
+
+      </footer>
+
+      <section class="page__share">
+  
+
+  <a href="https://twitter.com/intent/tweet?text=%E4%BA%8C%E9%A1%B9%E5%88%86%E5%B8%83%E4%BA%8C%E4%B8%89%E4%BA%8B%EF%BC%88%E4%B8%89%EF%BC%89%20%2Fbook%2Fprobability%2Fbinomial%2Fbayesian%2Fgermantank%2F2024%2F11%2F29%2Fgerman-tank-problem-1.html" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=%2Fbook%2Fprobability%2Fbinomial%2Fbayesian%2Fgermantank%2F2024%2F11%2F29%2Fgerman-tank-problem-1.html" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
+
+  <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=/book/probability/binomial/bayesian/germantank/2024/11/29/german-tank-problem-1.html" class="btn btn--linkedin" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on LinkedIn"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i><span> LinkedIn</span></a>
+</section>
+
+
+      
+  <nav class="pagination">
+    
+      <a href="/book/probability/binomial/momentgenerating/2024/11/22/binomial-distribution-2-moment-generating.html" class="pagination--pager" title="二项分布二三事（二）
+">Previous</a>
+    
+    
+      <a href="/book/probability/binomial/bayesian/germantank/2024/12/09/german-tank-problem-2.html" class="pagination--pager" title="二项分布二三事（四）
+">Next</a>
+    
+  </nav>
+
+    </div>
+
+    
+  </article>
+
+  
+  
+    
+<div class="page__related">
+  
+  <h2 class="page__related-title">You May Also Enjoy</h2>
+  <div class="grid__wrapper">
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/2025/03/07/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%B8%AD%E7%9A%84%E6%95%B0.html" rel="permalink">计算机中的数
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">数字是非常有趣的东西，在一维尺度上，只需要简单操作就能以任意高的密度描述整个实数轴。另外，当它与计算机结合时就更有趣了。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/computervision/imageprocessing/2025/02/26/random-image-corse-to-fine.html" rel="permalink">粗分辨率相机能否重现细分辨率图像
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          less than 1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">摘要：本文探讨了如何通过低分辨率相机还原细分辨率图像信息的方法。通过对原始图像进行多样本加噪处理，并使用低分辨率相机进行多次拍摄，最终通过叠加拍摄结果来重建高分辨率图像。实验结果表明，该方法在RGB颜色空间的自然图像上也能取得较好的效果。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/fractal/dimension/2025/02/20/fractal-curve-fill-2d-space.html" rel="permalink">二维分形曲线铺满二维平面
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          less than 1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">本文以Koch分形曲线为例，展示了分形曲线的维度计算原理，并通过实验展示了随曲线维度的提高，分形曲线逐渐铺满二维平面的过程。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/programming/python/blocker/2025/02/13/Python-blocker-using-queue.html" rel="permalink">使用Queue的Python阻塞器
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">程序设计的核心不在键盘上，而在需求里。
+本文就是针对这样一系列常见需求：
+
+</p>
+  </article>
+</div>
+
+    
+  </div>
+</div>
+
+  
+  
+</div>
+
+      <section style="display: none">
+    <!--
+    Convert the assets image src,
+    it is the compatible way to support both md preview locally and static assets url.
+    -->
+
+    <p id="site-baseurl">/book</p>
+
+    <script>
+        {
+            let siteBaseurl = document.getElementById('site-baseurl').textContent,
+                imgs = document.getElementsByClassName('page__content')[0].getElementsByTagName('img'),
+                img, src, dst;
+
+            console.log(`Converting assets image src for ${imgs.length} images.`)
+            for (let i = 0; i < imgs.length; i++) {
+                img = imgs[i];
+                src = img.src;
+                dst = img.src.replace('/assets/', siteBaseurl + '/assets/')
+                img.src = dst
+                img.style.border = 'solid red';
+                console.log(`${i + 1} | ${imgs.length} : ${src} -> ${dst}`)
+            }
+        }
+    </script>
+
+</section>
+
+<section>
+    <!-- Erase the first <p> whose textContent is "[toc]" -->
+    <script>
+        {
+            let ps = document.getElementsByTagName('p'), p;
+            for (let i = 0; i < ps.length; i++) {
+                p = ps[i];
+                if (p.textContent.toLowerCase() === '[toc]') {
+                    p.textContent = ''
+                    console.log('Found [toc] and erased it.')
+                    break
+                }
+            }
+        }
+    </script>
+</section>
+
+<section>
+    <!-- It suffers from CORS permission
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    -->
+    <!-- <script src=" https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js"></script> -->
+</section>
+    </div>
+
+    
+
+    <div id="footer" class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+        <div class="page__footer-follow">
+  <ul class="social-icons">
+    
+
+    
+
+    
+      <li><a href="/book/feed.xml"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
+    
+  </ul>
+</div>
+
+<div class="page__footer-copyright">© 2025 <a href="">Listenzcc talks a lot</a>. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    
+  <script src="/book/assets/js/main.min.js"></script>
+
+
+
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<!--
+  Minimal Mistakes Jekyll Theme 4.26.2 by Michael Rose
+  Copyright 2013-2024 Michael Rose - mademistakes.com | @mmistakes
+  Free for personal and commercial use under the MIT license
+  https://github.com/mmistakes/minimal-mistakes/blob/master/LICENSE
+--><html lang="en" class="no-js">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+
+<!-- begin _includes/seo.html --><title>Docker踩坑记 - Listenzcc talks a lot</title>
+<meta name="description" content="按道理说docker是一种常见的技术，但由于魔法长城和版本更新的存在，这个东西并没有想象中那么好用。本文对我在Win11机器上安装和使用docker时遇到的有意思的事情进行记录，留作日后避坑之用。  [toc]  安装  安装docker非常简单，只需要在他们的官网下载和安装最新的安装包即可。但拉取centos镜像时我立即遇到一个奇怪的问题，那就是它试图读取某个不存在的目录。我尝试了stackoverflow上的解决方案，思路是将docker切换到windows支持的模式，而不是留在linux模式。虽然这个方法很有道理，但并没有解决我的问题。  # Error message when pull or search centos  &lt;# Possible solution (Not working in my case): 	$ 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchDaemon 	Url: https://stackoverflow.com/questions/40459280/docker-cannot-start-on-windows #&gt;  # Expect: error during connect: Post &quot;http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.47/images/create?fromImage=centos&amp;tag=latest&quot;: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified. docker pull centos  # How to switch docker engine between windows and linux # Switch docker to window engine 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchDaemon  # Switch docker to linux engine 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchLinuxEngine   接下来我注意到了另一个事情，那就是docker的新特性，即支持wsl2（我没有继续查证这是从哪个版本开始的）的运行模式，我在安装时也确实勾选了这个选项。顺着这个思路，我开始检查我的wsl2版本。不出意料的，我的机器这时不仅没有安装它，甚至没有为它开启必要的windows features。在我解决了wsl2的问题后，之前的error就没再出现过，于是我想这两个步骤对于 docker 的安装来说都是必要的。    Docker: Accelerated Container Application Development  国内源（registry-mirrors）  当我按照手册进行镜像拉取时，我立即遇到了一个奇怪的故障，该故障的成因是魔法长城导致docker无法与它的源进行通信，因此无法完成我的要求。  # Error when pulling at the beginning.  docker pull ubuntu  &lt;# Meet the error message: Using default tag: latest Error response from daemon: Get &quot;https://registry-1.docker.io/v2/&quot;: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers) #&gt;   为了解决这个问题，我尝试增加墙内 registry-mirrors，在增加了以下 4 个站点时这个故障再没有发生。很奇怪的事情是在单独添加某个站点时，都没有解决该故障。这可能是由于 docker 的注册机制有点奇怪，某个神奇的机制导致这些站点产生了某种联动，从而克服了某个问题。本着代码能跑就不要修的原则，我决定单纯地记住它，并尝试使用它解决类似问题。  # Docker info with registry-mirrors  docker info  &lt;# Docker info with registry-mirrors Docker Root Dir: /var/lib/docker Debug Mode: false Experimental: false Insecure Registries: 	127.0.0.0/8 Registry Mirrors: 	https://cr.console.aliyun.com/ 	https://docker.m.daocloud.io/ 	https://public.ecr.aws/ 	https://dockerhub.timeweb.cloud/ Live Restore Enabled: false #&gt;   镜像  此时我拉取了centos镜像，所谓镜像（image）是计算机操作系统的术语，我对它有两种理解     从原理上讲它是一个操作系统的初始状态，这个状态是只读的，包含必要的引导和驱动程序。   从直观上讲，我将它理解成一张刻有操作系统的“光盘”，可以用它从头安装一个操作系统。   也就是说，我的docker里现在有了一张centos的安装盘。从逻辑上讲，现在应该继续进行search、hub和push的相关操作，但由于魔法长城的存在这条路行不通，所以还是老老实实搞local吧。  # Check docker images # REPOSITORY   TAG       IMAGE ID       CREATED       SIZE # centos       latest    5d0da3dc9764   3 years ago   231MB $ docker images     容器  所谓容器（container）就是让操作系统跑起来的地方。下面是启动简陋的centos bash tty交互环境。  # Run docker with centos with bash tty # Usage:  docker run [OPTIONS] IMAGE [COMMAND] [ARG...] # -i, --interactive                      Keep STDIN open even if not attached # -t, --tty                              Allocate a pseudo-TTY #     --name string                      Assign a name to the container docker run -it --name container-1 centos:latest /bin/bash     接下来是启动（start）并接入（attach）已有的窗口。（这里由于centos过于不好用，因此我新加入了ubuntu镜像，命名为container-2）  # Start and attach into existing container  docker start container-2 docker attach container-2       在容器上打洞  显然，让镜像在容器里空跑是不够的，我的目的是让它干活。首先，在container-2中安装python，net-tools等工具，之后以它为基础生成新的镜像，这个镜像就具有了基础工作能力。接下来需要让与外界即宿主机进行通信，常用的解决办法是在容器上预留通信端口，就像在容器上打一个洞，这样有用的东西就能通过这个洞进行交换，这个工作可以分为三步     从已有容器生成新的镜像（commit）   将新镜像装在新容器中，新容器预留通信端口（run -p）   测试与镜像的通信   # Example of port the container  # 1. new image docker commit container-2 ubuntu01  # 2. port when containing # run the container with -p A:B this means that it will forward the port A in the host machine to port B inside the container. docker run -it -p 8000:8000 ubuntu01:latest /bin/bash  # 3. visit localhost:8000       端口映射顺序  为了说明端口映射的顺序，我建立了一个新的样例。简单来说它是站在主机的立场上看镜像，遵循这样的语序，即将主机（localhost）端口映射于镜像端口上，即A代表主机侧的端口号，B代表镜像侧的端口号。  # Port position example  # Run the container with -p A:B this means that it will forward the port A in the host machine to port B inside the container. docker run -it -p 8000:8001 ubuntu01:latest /bin/bash  # Start http server in bash # $ python3 -m http.server 8001  # Simulate the web access wget http://localhost:8000">
+
+
+  <meta name="author" content="listenzcc">
+  
+  <meta property="article:author" content="listenzcc">
+  
+
+
+<meta property="og:type" content="article">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Listenzcc talks a lot">
+<meta property="og:title" content="Docker踩坑记">
+<meta property="og:url" content="/book/it/docker/2024/10/24/docker.html">
+
+
+  <meta property="og:description" content="按道理说docker是一种常见的技术，但由于魔法长城和版本更新的存在，这个东西并没有想象中那么好用。本文对我在Win11机器上安装和使用docker时遇到的有意思的事情进行记录，留作日后避坑之用。  [toc]  安装  安装docker非常简单，只需要在他们的官网下载和安装最新的安装包即可。但拉取centos镜像时我立即遇到一个奇怪的问题，那就是它试图读取某个不存在的目录。我尝试了stackoverflow上的解决方案，思路是将docker切换到windows支持的模式，而不是留在linux模式。虽然这个方法很有道理，但并没有解决我的问题。  # Error message when pull or search centos  &lt;# Possible solution (Not working in my case): 	$ 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchDaemon 	Url: https://stackoverflow.com/questions/40459280/docker-cannot-start-on-windows #&gt;  # Expect: error during connect: Post &quot;http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.47/images/create?fromImage=centos&amp;tag=latest&quot;: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified. docker pull centos  # How to switch docker engine between windows and linux # Switch docker to window engine 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchDaemon  # Switch docker to linux engine 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchLinuxEngine   接下来我注意到了另一个事情，那就是docker的新特性，即支持wsl2（我没有继续查证这是从哪个版本开始的）的运行模式，我在安装时也确实勾选了这个选项。顺着这个思路，我开始检查我的wsl2版本。不出意料的，我的机器这时不仅没有安装它，甚至没有为它开启必要的windows features。在我解决了wsl2的问题后，之前的error就没再出现过，于是我想这两个步骤对于 docker 的安装来说都是必要的。    Docker: Accelerated Container Application Development  国内源（registry-mirrors）  当我按照手册进行镜像拉取时，我立即遇到了一个奇怪的故障，该故障的成因是魔法长城导致docker无法与它的源进行通信，因此无法完成我的要求。  # Error when pulling at the beginning.  docker pull ubuntu  &lt;# Meet the error message: Using default tag: latest Error response from daemon: Get &quot;https://registry-1.docker.io/v2/&quot;: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers) #&gt;   为了解决这个问题，我尝试增加墙内 registry-mirrors，在增加了以下 4 个站点时这个故障再没有发生。很奇怪的事情是在单独添加某个站点时，都没有解决该故障。这可能是由于 docker 的注册机制有点奇怪，某个神奇的机制导致这些站点产生了某种联动，从而克服了某个问题。本着代码能跑就不要修的原则，我决定单纯地记住它，并尝试使用它解决类似问题。  # Docker info with registry-mirrors  docker info  &lt;# Docker info with registry-mirrors Docker Root Dir: /var/lib/docker Debug Mode: false Experimental: false Insecure Registries: 	127.0.0.0/8 Registry Mirrors: 	https://cr.console.aliyun.com/ 	https://docker.m.daocloud.io/ 	https://public.ecr.aws/ 	https://dockerhub.timeweb.cloud/ Live Restore Enabled: false #&gt;   镜像  此时我拉取了centos镜像，所谓镜像（image）是计算机操作系统的术语，我对它有两种理解     从原理上讲它是一个操作系统的初始状态，这个状态是只读的，包含必要的引导和驱动程序。   从直观上讲，我将它理解成一张刻有操作系统的“光盘”，可以用它从头安装一个操作系统。   也就是说，我的docker里现在有了一张centos的安装盘。从逻辑上讲，现在应该继续进行search、hub和push的相关操作，但由于魔法长城的存在这条路行不通，所以还是老老实实搞local吧。  # Check docker images # REPOSITORY   TAG       IMAGE ID       CREATED       SIZE # centos       latest    5d0da3dc9764   3 years ago   231MB $ docker images     容器  所谓容器（container）就是让操作系统跑起来的地方。下面是启动简陋的centos bash tty交互环境。  # Run docker with centos with bash tty # Usage:  docker run [OPTIONS] IMAGE [COMMAND] [ARG...] # -i, --interactive                      Keep STDIN open even if not attached # -t, --tty                              Allocate a pseudo-TTY #     --name string                      Assign a name to the container docker run -it --name container-1 centos:latest /bin/bash     接下来是启动（start）并接入（attach）已有的窗口。（这里由于centos过于不好用，因此我新加入了ubuntu镜像，命名为container-2）  # Start and attach into existing container  docker start container-2 docker attach container-2       在容器上打洞  显然，让镜像在容器里空跑是不够的，我的目的是让它干活。首先，在container-2中安装python，net-tools等工具，之后以它为基础生成新的镜像，这个镜像就具有了基础工作能力。接下来需要让与外界即宿主机进行通信，常用的解决办法是在容器上预留通信端口，就像在容器上打一个洞，这样有用的东西就能通过这个洞进行交换，这个工作可以分为三步     从已有容器生成新的镜像（commit）   将新镜像装在新容器中，新容器预留通信端口（run -p）   测试与镜像的通信   # Example of port the container  # 1. new image docker commit container-2 ubuntu01  # 2. port when containing # run the container with -p A:B this means that it will forward the port A in the host machine to port B inside the container. docker run -it -p 8000:8000 ubuntu01:latest /bin/bash  # 3. visit localhost:8000       端口映射顺序  为了说明端口映射的顺序，我建立了一个新的样例。简单来说它是站在主机的立场上看镜像，遵循这样的语序，即将主机（localhost）端口映射于镜像端口上，即A代表主机侧的端口号，B代表镜像侧的端口号。  # Port position example  # Run the container with -p A:B this means that it will forward the port A in the host machine to port B inside the container. docker run -it -p 8000:8001 ubuntu01:latest /bin/bash  # Start http server in bash # $ python3 -m http.server 8001  # Simulate the web access wget http://localhost:8000">
+
+
+
+
+
+
+
+  <meta property="article:published_time" content="2024-10-24T00:00:00+00:00">
+
+
+
+
+
+
+<link rel="canonical" href="/book/it/docker/2024/10/24/docker.html">
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- end _includes/seo.html -->
+
+
+
+  <link href="/book/feed.xml" type="application/atom+xml" rel="alternate" title="Listenzcc talks a lot Feed">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script type="text/javascript">
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+  window.enable_copy_code_button = true;
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/book/assets/css/main.css">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css"></noscript>
+
+
+
+    <!-- start custom head snippets -->
+
+<!-- insert favicons. use https://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+  <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">MathJax.Hub.Config({         tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] }       });</script>
+</head>
+
+  <body class="layout--single">
+    <nav class="skip-links">
+  <ul>
+    <li><a href="#site-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        
+        <a class="site-title" href="/book/">
+          Listenzcc talks a lot
+          
+        </a>
+        <ul class="visible-links">
+<li class="masthead__menu-item">
+              <a href="/book/help-center/">Help</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/search/">Search</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/year-archive/">Posts</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/categories/">Categories</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="https://github.com/listenzcc" target="_blank">External Link</a>
+            </li>
+</ul>
+        
+        <button class="greedy-nav__toggle hidden" type="button">
+          <span class="visually-hidden">Toggle menu</span>
+          <div class="navicon"></div>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+    <div class="initial-content">
+      
+
+
+
+
+  
+    
+
+
+
+<nav class="breadcrumbs">
+  <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+    
+    
+    
+      
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/" itemprop="item"><span itemprop="name">Home</span></a>
+
+          <meta itemprop="position" content="1">
+        </li>
+        <span class="sep">/</span>
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/it" itemprop="item"><span itemprop="name">It</span></a>
+          <meta itemprop="position" content="2">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/docker" itemprop="item"><span itemprop="name">Docker</span></a>
+          <meta itemprop="position" content="3">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/2024" itemprop="item"><span itemprop="name">2024</span></a>
+          <meta itemprop="position" content="4">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/10" itemprop="item"><span itemprop="name">10</span></a>
+          <meta itemprop="position" content="5">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/24" itemprop="item"><span itemprop="name">24</span></a>
+          <meta itemprop="position" content="6">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        <li class="current">Docker踩坑记</li>
+      
+    
+  </ol>
+</nav>
+
+  
+
+
+<div id="main" role="main">
+  
+  <div class="sidebar sticky">
+  
+
+
+<div itemscope itemtype="https://schema.org/Person" class="h-card">
+
+  
+    <div class="author__avatar">
+      <a href="/book/">
+        <img src="/book/assets/profile/bio-photo.jpg" alt="listenzcc" itemprop="image" class="u-photo">
+      </a>
+    </div>
+  
+
+  <div class="author__content">
+    <h3 class="author__name p-name" itemprop="name">
+      <a class="u-url" rel="me" href="/book/" itemprop="url">listenzcc</a>
+    </h3>
+    
+      <div class="author__bio p-note" itemprop="description">
+        <p>I am a programmer.</p>
+
+      </div>
+    
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">Follow</button>
+    <ul class="author__urls social-icons">
+      
+        <li itemprop="homeLocation" itemscope itemtype="https://schema.org/Place">
+          <i class="fas fa-fw fa-map-marker-alt" aria-hidden="true"></i> <span itemprop="name" class="p-locality">Somewhere</span>
+        </li>
+      
+
+      
+        
+          
+            <li><a href="https://github.com/listenzcc" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-fw fa-github" aria-hidden="true"></i><span class="label">GitHub</span></a></li>
+          
+        
+          
+            <li><a href="https://mademistakes.com" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fas fa-fw fa-link" aria-hidden="true"></i><span class="label">Made Mistakes</span></a></li>
+          
+        
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      <!--
+  <li>
+    <a href="http://link-to-whatever-social-network.com/user/" itemprop="sameAs" rel="nofollow noopener noreferrer me">
+      <i class="fas fa-fw" aria-hidden="true"></i> Custom Social Profile Link
+    </a>
+  </li>
+-->
+    </ul>
+  </div>
+</div>
+
+  
+  </div>
+
+
+
+  <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
+    <meta itemprop="headline" content="Docker踩坑记">
+    <meta itemprop="description" content="按道理说docker是一种常见的技术，但由于魔法长城和版本更新的存在，这个东西并没有想象中那么好用。本文对我在Win11机器上安装和使用docker时遇到的有意思的事情进行记录，留作日后避坑之用。[toc]安装安装docker非常简单，只需要在他们的官网下载和安装最新的安装包即可。但拉取centos镜像时我立即遇到一个奇怪的问题，那就是它试图读取某个不存在的目录。我尝试了stackoverflow上的解决方案，思路是将docker切换到windows支持的模式，而不是留在linux模式。虽然这个方法很有道理，但并没有解决我的问题。# Error message when pull or search centos&lt;# Possible solution (Not working in my case):	$ 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchDaemon	Url: https://stackoverflow.com/questions/40459280/docker-cannot-start-on-windows#&gt;# Expect: error during connect: Post &quot;http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.47/images/create?fromImage=centos&amp;tag=latest&quot;: open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.docker pull centos# How to switch docker engine between windows and linux# Switch docker to window engine'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchDaemon# Switch docker to linux engine'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchLinuxEngine接下来我注意到了另一个事情，那就是docker的新特性，即支持wsl2（我没有继续查证这是从哪个版本开始的）的运行模式，我在安装时也确实勾选了这个选项。顺着这个思路，我开始检查我的wsl2版本。不出意料的，我的机器这时不仅没有安装它，甚至没有为它开启必要的windows features。在我解决了wsl2的问题后，之前的error就没再出现过，于是我想这两个步骤对于 docker 的安装来说都是必要的。Docker: Accelerated Container Application Development国内源（registry-mirrors）当我按照手册进行镜像拉取时，我立即遇到了一个奇怪的故障，该故障的成因是魔法长城导致docker无法与它的源进行通信，因此无法完成我的要求。# Error when pulling at the beginning.docker pull ubuntu&lt;# Meet the error message:Using default tag: latestError response from daemon: Get &quot;https://registry-1.docker.io/v2/&quot;: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)#&gt;为了解决这个问题，我尝试增加墙内 registry-mirrors，在增加了以下 4 个站点时这个故障再没有发生。很奇怪的事情是在单独添加某个站点时，都没有解决该故障。这可能是由于 docker 的注册机制有点奇怪，某个神奇的机制导致这些站点产生了某种联动，从而克服了某个问题。本着代码能跑就不要修的原则，我决定单纯地记住它，并尝试使用它解决类似问题。# Docker info with registry-mirrorsdocker info&lt;# Docker info with registry-mirrorsDocker Root Dir: /var/lib/dockerDebug Mode: falseExperimental: falseInsecure Registries:	127.0.0.0/8Registry Mirrors:	https://cr.console.aliyun.com/	https://docker.m.daocloud.io/	https://public.ecr.aws/	https://dockerhub.timeweb.cloud/Live Restore Enabled: false#&gt;镜像此时我拉取了centos镜像，所谓镜像（image）是计算机操作系统的术语，我对它有两种理解  从原理上讲它是一个操作系统的初始状态，这个状态是只读的，包含必要的引导和驱动程序。  从直观上讲，我将它理解成一张刻有操作系统的“光盘”，可以用它从头安装一个操作系统。也就是说，我的docker里现在有了一张centos的安装盘。从逻辑上讲，现在应该继续进行search、hub和push的相关操作，但由于魔法长城的存在这条路行不通，所以还是老老实实搞local吧。# Check docker images# REPOSITORY   TAG       IMAGE ID       CREATED       SIZE# centos       latest    5d0da3dc9764   3 years ago   231MB$ docker images容器所谓容器（container）就是让操作系统跑起来的地方。下面是启动简陋的centos bash tty交互环境。# Run docker with centos with bash tty# Usage:  docker run [OPTIONS] IMAGE [COMMAND] [ARG...]# -i, --interactive                      Keep STDIN open even if not attached# -t, --tty                              Allocate a pseudo-TTY#     --name string                      Assign a name to the containerdocker run -it --name container-1 centos:latest /bin/bash接下来是启动（start）并接入（attach）已有的窗口。（这里由于centos过于不好用，因此我新加入了ubuntu镜像，命名为container-2）# Start and attach into existing containerdocker start container-2docker attach container-2在容器上打洞显然，让镜像在容器里空跑是不够的，我的目的是让它干活。首先，在container-2中安装python，net-tools等工具，之后以它为基础生成新的镜像，这个镜像就具有了基础工作能力。接下来需要让与外界即宿主机进行通信，常用的解决办法是在容器上预留通信端口，就像在容器上打一个洞，这样有用的东西就能通过这个洞进行交换，这个工作可以分为三步  从已有容器生成新的镜像（commit）  将新镜像装在新容器中，新容器预留通信端口（run -p）  测试与镜像的通信# Example of port the container# 1. new imagedocker commit container-2 ubuntu01# 2. port when containing# run the container with -p A:B this means that it will forward the port A in the host machine to port B inside the container.docker run -it -p 8000:8000 ubuntu01:latest /bin/bash# 3. visit localhost:8000端口映射顺序为了说明端口映射的顺序，我建立了一个新的样例。简单来说它是站在主机的立场上看镜像，遵循这样的语序，即将主机（localhost）端口映射于镜像端口上，即A代表主机侧的端口号，B代表镜像侧的端口号。# Port position example# Run the container with -p A:B this means that it will forward the port A in the host machine to port B inside the container.docker run -it -p 8000:8001 ubuntu01:latest /bin/bash# Start http server in bash# $ python3 -m http.server 8001# Simulate the web accesswget http://localhost:8000">
+    <meta itemprop="datePublished" content="2024-10-24T00:00:00+00:00">
+    
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 id="page-title" class="page__title" itemprop="headline">
+            <a href="/book/it/docker/2024/10/24/docker.html" itemprop="url">Docker踩坑记
+</a>
+          </h1>
+          
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          1 minute read
+        
+      </span>
+    
+  </p>
+
+
+        </header>
+      
+
+      <section class="page__content" itemprop="text">
+        
+          <aside class="sidebar__right sticky">
+            <nav class="toc">
+              <header><h4 class="nav__title">
+<i class="fas fa-music"></i> Table of contents</h4></header>
+              <ul class="toc__menu">
+<li>
+<a href="#%E5%AE%89%E8%A3%85">安装</a><ul><li><a href="#%E5%9B%BD%E5%86%85%E6%BA%90registry-mirrors">国内源（registry-mirrors）</a></li></ul>
+</li>
+<li><a href="#%E9%95%9C%E5%83%8F">镜像</a></li>
+<li>
+<a href="#%E5%AE%B9%E5%99%A8">容器</a><ul>
+<li><a href="#%E5%9C%A8%E5%AE%B9%E5%99%A8%E4%B8%8A%E6%89%93%E6%B4%9E">在容器上打洞</a></li>
+<li><a href="#%E7%AB%AF%E5%8F%A3%E6%98%A0%E5%B0%84%E9%A1%BA%E5%BA%8F">端口映射顺序</a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+          </aside>
+        
+        <p>按道理说<code class="language-plaintext highlighter-rouge">docker</code>是一种常见的技术，但由于魔法长城和版本更新的存在，这个东西并没有想象中那么好用。本文对我在<code class="language-plaintext highlighter-rouge">Win11</code>机器上安装和使用<code class="language-plaintext highlighter-rouge">docker</code>时遇到的有意思的事情进行记录，留作日后避坑之用。</p>
+
+<p>[toc]</p>
+
+<h2 id="安装">安装</h2>
+
+<p>安装<code class="language-plaintext highlighter-rouge">docker</code>非常简单，只需要在他们的官网下载和安装最新的安装包即可。但拉取<code class="language-plaintext highlighter-rouge">centos</code>镜像时我立即遇到一个奇怪的问题，那就是它试图读取某个不存在的目录。我尝试了<code class="language-plaintext highlighter-rouge">stackoverflow</code>上的解决方案，思路是将<code class="language-plaintext highlighter-rouge">docker</code>切换到<code class="language-plaintext highlighter-rouge">windows</code>支持的模式，而不是留在<code class="language-plaintext highlighter-rouge">linux</code>模式。虽然这个方法很有道理，但并没有解决我的问题。</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Error message when pull or search centos</span><span class="w">
+
+</span><span class="cm">&lt;# Possible solution (Not working in my case):
+	$ 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchDaemon
+	Url: https://stackoverflow.com/questions/40459280/docker-cannot-start-on-windows
+#&gt;</span><span class="w">
+
+</span><span class="c"># Expect: error during connect: Post "http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.47/images/create?fromImage=centos&amp;tag=latest": open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.</span><span class="w">
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">pull</span><span class="w"> </span><span class="nx">centos</span><span class="w">
+
+</span><span class="c"># How to switch docker engine between windows and linux</span><span class="w">
+</span><span class="c"># Switch docker to window engine</span><span class="w">
+</span><span class="s1">'C:\Program Files\Docker\Docker\DockerCli.exe'</span><span class="w"> </span><span class="nt">-SwitchDaemon</span><span class="w">
+
+</span><span class="c"># Switch docker to linux engine</span><span class="w">
+</span><span class="s1">'C:\Program Files\Docker\Docker\DockerCli.exe'</span><span class="w"> </span><span class="nt">-SwitchLinuxEngine</span><span class="w">
+</span></code></pre></div></div>
+
+<p>接下来我注意到了另一个事情，那就是<code class="language-plaintext highlighter-rouge">docker</code>的新特性，即支持<code class="language-plaintext highlighter-rouge">wsl2</code>（我没有继续查证这是从哪个版本开始的）的运行模式，我在安装时也确实勾选了这个选项。顺着这个思路，我开始检查我的<code class="language-plaintext highlighter-rouge">wsl2</code>版本。不出意料的，我的机器这时不仅没有安装它，甚至没有为它开启必要的<code class="language-plaintext highlighter-rouge">windows features</code>。在我解决了<code class="language-plaintext highlighter-rouge">wsl2</code>的问题后，之前的<code class="language-plaintext highlighter-rouge">error</code>就没再出现过，于是我想这两个步骤对于 docker 的安装来说都是必要的。</p>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image.png" alt="image.png"></p>
+
+<p><a href="https://www.docker.com/">Docker: Accelerated Container Application Development</a></p>
+
+<h3 id="国内源registry-mirrors">国内源（registry-mirrors）</h3>
+
+<p>当我按照手册进行镜像拉取时，我立即遇到了一个奇怪的故障，该故障的成因是魔法长城导致<code class="language-plaintext highlighter-rouge">docker</code>无法与它的源进行通信，因此无法完成我的要求。</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Error when pulling at the beginning.</span><span class="w">
+
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">pull</span><span class="w"> </span><span class="nx">ubuntu</span><span class="w">
+
+</span><span class="cm">&lt;# Meet the error message:
+Using default tag: latest
+Error response from daemon: Get "https://registry-1.docker.io/v2/": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+#&gt;</span><span class="w">
+</span></code></pre></div></div>
+
+<p>为了解决这个问题，我尝试增加墙内 registry-mirrors，在增加了以下 4 个站点时这个故障再没有发生。很奇怪的事情是在单独添加某个站点时，都没有解决该故障。这可能是由于 docker 的注册机制有点奇怪，某个神奇的机制导致这些站点产生了某种联动，从而克服了某个问题。本着<strong>代码能跑就不要修的原则</strong>，我决定单纯地记住它，并尝试使用它解决类似问题。</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Docker info with registry-mirrors</span><span class="w">
+
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">info</span><span class="w">
+
+</span><span class="cm">&lt;# Docker info with registry-mirrors
+Docker Root Dir: /var/lib/docker
+Debug Mode: false
+Experimental: false
+Insecure Registries:
+	127.0.0.0/8
+Registry Mirrors:
+	https://cr.console.aliyun.com/
+	https://docker.m.daocloud.io/
+	https://public.ecr.aws/
+	https://dockerhub.timeweb.cloud/
+Live Restore Enabled: false
+#&gt;</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="镜像">镜像</h2>
+
+<p>此时我拉取了<code class="language-plaintext highlighter-rouge">centos</code>镜像，所谓镜像（image）是计算机操作系统的术语，我对它有两种理解</p>
+
+<ol>
+  <li>从原理上讲它是一个操作系统的初始状态，这个状态是只读的，包含必要的引导和驱动程序。</li>
+  <li>从直观上讲，我将它理解成一张刻有操作系统的“光盘”，可以用它从头安装一个操作系统。</li>
+</ol>
+
+<p>也就是说，我的<code class="language-plaintext highlighter-rouge">docker</code>里现在有了一张<code class="language-plaintext highlighter-rouge">centos</code>的安装盘。从逻辑上讲，现在应该继续进行<code class="language-plaintext highlighter-rouge">search</code>、<code class="language-plaintext highlighter-rouge">hub</code>和<code class="language-plaintext highlighter-rouge">push</code>的相关操作，但由于魔法长城的存在这条路行不通，所以还是老老实实搞<code class="language-plaintext highlighter-rouge">local</code>吧。</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Check docker images</span><span class="w">
+</span><span class="c"># REPOSITORY   TAG       IMAGE ID       CREATED       SIZE</span><span class="w">
+</span><span class="c"># centos       latest    5d0da3dc9764   3 years ago   231MB</span><span class="w">
+</span><span class="err">$</span><span class="w"> </span><span class="n">docker</span><span class="w"> </span><span class="nx">images</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%201.png" alt="image.png"></p>
+
+<h2 id="容器">容器</h2>
+
+<p>所谓容器（container）就是让操作系统跑起来的地方。下面是启动简陋的<code class="language-plaintext highlighter-rouge">centos bash tty</code>交互环境。</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Run docker with centos with bash tty</span><span class="w">
+</span><span class="c"># Usage:  docker run [OPTIONS] IMAGE [COMMAND] [ARG...]</span><span class="w">
+</span><span class="c"># -i, --interactive                      Keep STDIN open even if not attached</span><span class="w">
+</span><span class="c"># -t, --tty                              Allocate a pseudo-TTY</span><span class="w">
+</span><span class="c">#     --name string                      Assign a name to the container</span><span class="w">
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">run</span><span class="w"> </span><span class="nt">-it</span><span class="w"> </span><span class="nt">--name</span><span class="w"> </span><span class="nx">container-1</span><span class="w"> </span><span class="nx">centos:latest</span><span class="w"> </span><span class="nx">/bin/bash</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%202.png" alt="image.png"></p>
+
+<p>接下来是启动（<code class="language-plaintext highlighter-rouge">start</code>）并接入（<code class="language-plaintext highlighter-rouge">attach</code>）已有的窗口。（这里由于<code class="language-plaintext highlighter-rouge">centos</code>过于不好用，因此我新加入了<code class="language-plaintext highlighter-rouge">ubuntu</code>镜像，命名为<code class="language-plaintext highlighter-rouge">container-2</code>）</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Start and attach into existing container</span><span class="w">
+
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">start</span><span class="w"> </span><span class="nx">container-2</span><span class="w">
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">attach</span><span class="w"> </span><span class="nx">container-2</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%203.png" alt="image.png"></p>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%204.png" alt="image.png"></p>
+
+<h3 id="在容器上打洞">在容器上打洞</h3>
+
+<p>显然，让镜像在容器里空跑是不够的，我的目的是让它干活。首先，在<code class="language-plaintext highlighter-rouge">container-2</code>中安装<code class="language-plaintext highlighter-rouge">python</code>，<code class="language-plaintext highlighter-rouge">net-tools</code>等工具，之后以它为基础生成新的镜像，这个镜像就具有了基础工作能力。接下来需要让与外界即宿主机进行通信，常用的解决办法是在容器上预留通信端口，就像在容器上打一个洞，这样有用的东西就能通过这个洞进行交换，这个工作可以分为三步</p>
+
+<ol>
+  <li>从已有容器生成新的镜像（<code class="language-plaintext highlighter-rouge">commit</code>）</li>
+  <li>将新镜像装在新容器中，新容器预留通信端口（<code class="language-plaintext highlighter-rouge">run -p</code>）</li>
+  <li>测试与镜像的通信</li>
+</ol>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Example of port the container</span><span class="w">
+
+</span><span class="c"># 1. new image</span><span class="w">
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">commit</span><span class="w"> </span><span class="nx">container-2</span><span class="w"> </span><span class="nx">ubuntu01</span><span class="w">
+
+</span><span class="c"># 2. port when containing</span><span class="w">
+</span><span class="c"># run the container with -p A:B this means that it will forward the port A in the host machine to port B inside the container.</span><span class="w">
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">run</span><span class="w"> </span><span class="nt">-it</span><span class="w"> </span><span class="nt">-p</span><span class="w"> </span><span class="nx">8000:8000</span><span class="w"> </span><span class="nx">ubuntu01:latest</span><span class="w"> </span><span class="nx">/bin/bash</span><span class="w">
+
+</span><span class="c"># 3. visit localhost:8000</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%205.png" alt="image.png"></p>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%206.png" alt="image.png"></p>
+
+<h3 id="端口映射顺序">端口映射顺序</h3>
+
+<p>为了说明端口映射的顺序，我建立了一个新的样例。简单来说它是站在主机的立场上看镜像，遵循这样的语序，即将主机（<code class="language-plaintext highlighter-rouge">localhost</code>）端口映射于镜像端口上，即<code class="language-plaintext highlighter-rouge">A</code>代表主机侧的端口号，<code class="language-plaintext highlighter-rouge">B</code>代表镜像侧的端口号。</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Port position example</span><span class="w">
+
+</span><span class="c"># Run the container with -p A:B this means that it will forward the port A in the host machine to port B inside the container.</span><span class="w">
+</span><span class="n">docker</span><span class="w"> </span><span class="nx">run</span><span class="w"> </span><span class="nt">-it</span><span class="w"> </span><span class="nt">-p</span><span class="w"> </span><span class="nx">8000:8001</span><span class="w"> </span><span class="nx">ubuntu01:latest</span><span class="w"> </span><span class="nx">/bin/bash</span><span class="w">
+
+</span><span class="c"># Start http server in bash</span><span class="w">
+</span><span class="c"># $ python3 -m http.server 8001</span><span class="w">
+
+</span><span class="c"># Simulate the web access</span><span class="w">
+</span><span class="n">wget</span><span class="w"> </span><span class="nx">http://localhost:8000</span><span class="w">
+</span></code></pre></div></div>
+
+<p><img src="/assets/Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%207e764e8d729e4ff9a3fd93236328aed8/image%207.png" alt="image.png"></p>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+        
+
+  <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time class="dt-published" datetime="2024-10-24T00:00:00+00:00">October 24, 2024</time></p>
+
+      </footer>
+
+      <section class="page__share">
+  
+
+  <a href="https://twitter.com/intent/tweet?text=Docker%E8%B8%A9%E5%9D%91%E8%AE%B0%20%2Fbook%2Fit%2Fdocker%2F2024%2F10%2F24%2Fdocker.html" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=%2Fbook%2Fit%2Fdocker%2F2024%2F10%2F24%2Fdocker.html" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
+
+  <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=/book/it/docker/2024/10/24/docker.html" class="btn btn--linkedin" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on LinkedIn"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i><span> LinkedIn</span></a>
+</section>
+
+
+      
+  <nav class="pagination">
+    
+      <a href="/book/boltzmanndistribution/entropy/2024/10/21/boltzmann-distribution.html" class="pagination--pager" title="Boltzmann distribution
+">Previous</a>
+    
+    
+      <a href="/book/it/tcp/2024/10/31/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C-130dc9c7091480d3b07fc37fd1bdf712.html" class="pagination--pager" title="TCP准时同步的可行性实验
+">Next</a>
+    
+  </nav>
+
+    </div>
+
+    
+  </article>
+
+  
+  
+    
+<div class="page__related">
+  
+  <h2 class="page__related-title">You May Also Enjoy</h2>
+  <div class="grid__wrapper">
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/2025/03/07/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%B8%AD%E7%9A%84%E6%95%B0.html" rel="permalink">计算机中的数
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">数字是非常有趣的东西，在一维尺度上，只需要简单操作就能以任意高的密度描述整个实数轴。另外，当它与计算机结合时就更有趣了。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/computervision/imageprocessing/2025/02/26/random-image-corse-to-fine.html" rel="permalink">粗分辨率相机能否重现细分辨率图像
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          less than 1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">摘要：本文探讨了如何通过低分辨率相机还原细分辨率图像信息的方法。通过对原始图像进行多样本加噪处理，并使用低分辨率相机进行多次拍摄，最终通过叠加拍摄结果来重建高分辨率图像。实验结果表明，该方法在RGB颜色空间的自然图像上也能取得较好的效果。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/fractal/dimension/2025/02/20/fractal-curve-fill-2d-space.html" rel="permalink">二维分形曲线铺满二维平面
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          less than 1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">本文以Koch分形曲线为例，展示了分形曲线的维度计算原理，并通过实验展示了随曲线维度的提高，分形曲线逐渐铺满二维平面的过程。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/programming/python/blocker/2025/02/13/Python-blocker-using-queue.html" rel="permalink">使用Queue的Python阻塞器
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">程序设计的核心不在键盘上，而在需求里。
+本文就是针对这样一系列常见需求：
+
+</p>
+  </article>
+</div>
+
+    
+  </div>
+</div>
+
+  
+  
+</div>
+
+      <section style="display: none">
+    <!--
+    Convert the assets image src,
+    it is the compatible way to support both md preview locally and static assets url.
+    -->
+
+    <p id="site-baseurl">/book</p>
+
+    <script>
+        {
+            let siteBaseurl = document.getElementById('site-baseurl').textContent,
+                imgs = document.getElementsByClassName('page__content')[0].getElementsByTagName('img'),
+                img, src, dst;
+
+            console.log(`Converting assets image src for ${imgs.length} images.`)
+            for (let i = 0; i < imgs.length; i++) {
+                img = imgs[i];
+                src = img.src;
+                dst = img.src.replace('/assets/', siteBaseurl + '/assets/')
+                img.src = dst
+                img.style.border = 'solid red';
+                console.log(`${i + 1} | ${imgs.length} : ${src} -> ${dst}`)
+            }
+        }
+    </script>
+
+</section>
+
+<section>
+    <!-- Erase the first <p> whose textContent is "[toc]" -->
+    <script>
+        {
+            let ps = document.getElementsByTagName('p'), p;
+            for (let i = 0; i < ps.length; i++) {
+                p = ps[i];
+                if (p.textContent.toLowerCase() === '[toc]') {
+                    p.textContent = ''
+                    console.log('Found [toc] and erased it.')
+                    break
+                }
+            }
+        }
+    </script>
+</section>
+
+<section>
+    <!-- It suffers from CORS permission
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    -->
+    <!-- <script src=" https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js"></script> -->
+</section>
+    </div>
+
+    
+
+    <div id="footer" class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+        <div class="page__footer-follow">
+  <ul class="social-icons">
+    
+
+    
+
+    
+      <li><a href="/book/feed.xml"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
+    
+  </ul>
+</div>
+
+<div class="page__footer-copyright">© 2025 <a href="">Listenzcc talks a lot</a>. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    
+  <script src="/book/assets/js/main.min.js"></script>
+
+
+
+
+
+
+
+
+
+  </body>
+</html>

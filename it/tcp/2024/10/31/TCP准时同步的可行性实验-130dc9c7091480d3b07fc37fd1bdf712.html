@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<!--
+  Minimal Mistakes Jekyll Theme 4.26.2 by Michael Rose
+  Copyright 2013-2024 Michael Rose - mademistakes.com | @mmistakes
+  Free for personal and commercial use under the MIT license
+  https://github.com/mmistakes/minimal-mistakes/blob/master/LICENSE
+--><html lang="en" class="no-js">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+
+<!-- begin _includes/seo.html --><title>TCP准时同步的可行性实验 - Listenzcc talks a lot</title>
+<meta name="description" content="本文进行了简易的 TCP 通信实验，结果表明在网络条件较好的情况下，该通信方式有可能达到准时效果。但该实验同时表明，此通信方式容易受到网络负载的影响。">
+
+
+  <meta name="author" content="listenzcc">
+  
+  <meta property="article:author" content="listenzcc">
+  
+
+
+<meta property="og:type" content="article">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Listenzcc talks a lot">
+<meta property="og:title" content="TCP准时同步的可行性实验">
+<meta property="og:url" content="/book/it/tcp/2024/10/31/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C-130dc9c7091480d3b07fc37fd1bdf712.html">
+
+
+  <meta property="og:description" content="本文进行了简易的 TCP 通信实验，结果表明在网络条件较好的情况下，该通信方式有可能达到准时效果。但该实验同时表明，此通信方式容易受到网络负载的影响。">
+
+
+
+
+
+
+
+  <meta property="article:published_time" content="2024-10-31T00:00:00+00:00">
+
+
+
+
+
+
+<link rel="canonical" href="/book/it/tcp/2024/10/31/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C-130dc9c7091480d3b07fc37fd1bdf712.html">
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- end _includes/seo.html -->
+
+
+
+  <link href="/book/feed.xml" type="application/atom+xml" rel="alternate" title="Listenzcc talks a lot Feed">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script type="text/javascript">
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+  window.enable_copy_code_button = true;
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/book/assets/css/main.css">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css"></noscript>
+
+
+
+    <!-- start custom head snippets -->
+
+<!-- insert favicons. use https://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+  <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">MathJax.Hub.Config({         tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] }       });</script>
+</head>
+
+  <body class="layout--single">
+    <nav class="skip-links">
+  <ul>
+    <li><a href="#site-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        
+        <a class="site-title" href="/book/">
+          Listenzcc talks a lot
+          
+        </a>
+        <ul class="visible-links">
+<li class="masthead__menu-item">
+              <a href="/book/help-center/">Help</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/search/">Search</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/year-archive/">Posts</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/categories/">Categories</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="https://github.com/listenzcc" target="_blank">External Link</a>
+            </li>
+</ul>
+        
+        <button class="greedy-nav__toggle hidden" type="button">
+          <span class="visually-hidden">Toggle menu</span>
+          <div class="navicon"></div>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+    <div class="initial-content">
+      
+
+
+
+
+  
+    
+
+
+
+<nav class="breadcrumbs">
+  <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+    
+    
+    
+      
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/" itemprop="item"><span itemprop="name">Home</span></a>
+
+          <meta itemprop="position" content="1">
+        </li>
+        <span class="sep">/</span>
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/it" itemprop="item"><span itemprop="name">It</span></a>
+          <meta itemprop="position" content="2">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/tcp" itemprop="item"><span itemprop="name">Tcp</span></a>
+          <meta itemprop="position" content="3">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/2024" itemprop="item"><span itemprop="name">2024</span></a>
+          <meta itemprop="position" content="4">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/10" itemprop="item"><span itemprop="name">10</span></a>
+          <meta itemprop="position" content="5">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/31" itemprop="item"><span itemprop="name">31</span></a>
+          <meta itemprop="position" content="6">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        <li class="current">TCP准时同步的可行性实验</li>
+      
+    
+  </ol>
+</nav>
+
+  
+
+
+<div id="main" role="main">
+  
+  <div class="sidebar sticky">
+  
+
+
+<div itemscope itemtype="https://schema.org/Person" class="h-card">
+
+  
+    <div class="author__avatar">
+      <a href="/book/">
+        <img src="/book/assets/profile/bio-photo.jpg" alt="listenzcc" itemprop="image" class="u-photo">
+      </a>
+    </div>
+  
+
+  <div class="author__content">
+    <h3 class="author__name p-name" itemprop="name">
+      <a class="u-url" rel="me" href="/book/" itemprop="url">listenzcc</a>
+    </h3>
+    
+      <div class="author__bio p-note" itemprop="description">
+        <p>I am a programmer.</p>
+
+      </div>
+    
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">Follow</button>
+    <ul class="author__urls social-icons">
+      
+        <li itemprop="homeLocation" itemscope itemtype="https://schema.org/Place">
+          <i class="fas fa-fw fa-map-marker-alt" aria-hidden="true"></i> <span itemprop="name" class="p-locality">Somewhere</span>
+        </li>
+      
+
+      
+        
+          
+            <li><a href="https://github.com/listenzcc" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-fw fa-github" aria-hidden="true"></i><span class="label">GitHub</span></a></li>
+          
+        
+          
+            <li><a href="https://mademistakes.com" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fas fa-fw fa-link" aria-hidden="true"></i><span class="label">Made Mistakes</span></a></li>
+          
+        
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      <!--
+  <li>
+    <a href="http://link-to-whatever-social-network.com/user/" itemprop="sameAs" rel="nofollow noopener noreferrer me">
+      <i class="fas fa-fw" aria-hidden="true"></i> Custom Social Profile Link
+    </a>
+  </li>
+-->
+    </ul>
+  </div>
+</div>
+
+  
+  </div>
+
+
+
+  <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
+    <meta itemprop="headline" content="TCP准时同步的可行性实验">
+    <meta itemprop="description" content="本文进行了简易的 TCP 通信实验，结果表明在网络条件较好的情况下，该通信方式有可能达到准时效果。但该实验同时表明，此通信方式容易受到网络负载的影响。">
+    <meta itemprop="datePublished" content="2024-10-31T00:00:00+00:00">
+    
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 id="page-title" class="page__title" itemprop="headline">
+            <a href="/book/it/tcp/2024/10/31/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C-130dc9c7091480d3b07fc37fd1bdf712.html" itemprop="url">TCP准时同步的可行性实验
+</a>
+          </h1>
+          
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          less than 1 minute read
+        
+      </span>
+    
+  </p>
+
+
+        </header>
+      
+
+      <section class="page__content" itemprop="text">
+        
+          <aside class="sidebar__right sticky">
+            <nav class="toc">
+              <header><h4 class="nav__title">
+<i class="fas fa-music"></i> Table of contents</h4></header>
+              <ul class="toc__menu">
+<li>
+<a href="#%E7%90%86%E6%83%B3%E6%83%85%E5%86%B5">理想情况</a><ul>
+<li><a href="#%E8%BF%9C%E7%AB%AF">远端</a></li>
+<li><a href="#%E8%BF%91%E7%AB%AF">近端</a></li>
+</ul>
+</li>
+<li><a href="#%E7%BD%91%E7%BB%9C%E6%8B%A5%E5%A0%B5%E6%83%85%E5%86%B5">网络拥堵情况</a></li>
+</ul>
+            </nav>
+          </aside>
+        
+        <p>本文进行了简易的 TCP 通信实验，结果表明在网络条件较好的情况下，该通信方式有可能达到准时效果。但该实验同时表明，此通信方式容易受到网络负载的影响。</p>
+
+<p>[toc]</p>
+
+<h2 id="理想情况">理想情况</h2>
+
+<p>这是一个简单的<code class="language-plaintext highlighter-rouge">demo</code>，它利用<code class="language-plaintext highlighter-rouge">python</code>的<code class="language-plaintext highlighter-rouge">socket</code>包进行<code class="language-plaintext highlighter-rouge">TCP/IP</code>通信，通信的双方分别称为近端和远端，其中近端为本地<code class="language-plaintext highlighter-rouge">PC</code>，远端为<code class="language-plaintext highlighter-rouge">Ubuntu</code>服务器。通信过程过程简化如下图，每次信息发送都携带有本地时间戳。</p>
+
+<p><img src="/assets/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C%20130dc9c7091480d3b07fc37fd1bdf712/image.png" alt="image.png"></p>
+
+<p><img src="data:image/png;base64,%20iVBORw0KGgoAAAANSUhEUgAAAXoAAAEJCAIAAAAVdHuoAAAAKnRFWHRjb3B5%20bGVmdABHZW5lcmF0ZWQgYnkgaHR0cHM6Ly9wbGFudHVtbC5jb212zsofAAAC%20WWlUWHRwbGFudHVtbAABAAAAeJzdVU1v2kAQve+vmKqX5EBEiQ2tDxUlhLQE%202ohALlUPa3swK9a77npthKr+944xBCt8CFrlUlu25Jk3783H7rqdWm5sFkv2%20xs4wRsiFb7iyjGdWqyz20TAWGZ0lMDYiitBAYnSAacq+IjdQ+/7WYPjjI/To%20w4MZSqmZ0hZB4tR68EUJK7gEWwazXhnjywwpaEXhwQJloGMs4wg4o8ARBihy%20DJ8jUYWbTMinTbhOoFbSeBCi5Muq9kDrZG0tgtv0Kgpl7eeaWToXKuGGx9Dh%20wbxgV+GNltpAb3VVAOmMh3ohVARTLlOseEZllFHUnFbF/skYvSjZHNdpOm7F%2019PKHnA94s8MVYADMaVHYYdqRVOCmx+Kew/4rmjMZ+SEPIF6hd7ijrOerl8i%20xzMRzBWtEHhXbXC6RnZFLggFvxjQVSVfp7s1V5kK605lv6sC9LYiEAmt3g35%20zkyb107rmO5WYT3/vclcvVAOueU+T/GAbL3+guqI7L7CUFlhlwdrunXdxt+T%20r/bLfuoWZd11zqI+qV08sNoc0NzhObMcv6Di5rW6FZDXaPlq7FJiYIVW6UEF%20t+f8gwJtwezQuM/cHUdm/R//Ox4kHS+T4QByNCkNiipu1Bvu1bWPljsXEzVX%20eqFoknEiJIIVMV6yi7uHAaQ6MwFCKFLKys+KKV+yPs85jDJV4Dz4lqDqd+83%20BrhVuTBaxXQAsP7TcAtoOrWOsHT4GkoDnoasi1OeSUsRgQ7pH+XBZNyrvWcD%20rqKMR8SNit3QrK1Zku+R/QFPJpG6bZQtIwAANvdJREFUeF7tnQlUFVeax5NM%20tu4kk/SkE7tnujszJ51Jcnom7SQ90zl90udM0odVdtlFAQFZFEUUEAGJSlQS%20YzQmUSM6iWhiooi44RZ3EUVkeQrivkRUUKTR4Ap3/vUulGUVr3g83lLvve93%20vsOp+urWvZev6vtz763Hq4cYQRCEVXhI7iAIgrAMJDcEQVgJkhuCIKwEyY0Z%20aG1t1el01TXV1rfa2trm5mZ5h7QNOoxuK3+X/huuAq6FvD1CM5Dc9IsrV65k%20jEpwcXWxrUUH+ZeuXSPvnPYoXVuCrir7b17LSE7CdZG3TWgAkpt+MWFUop+7%20y/fBrtURbtURrrYwt/WhrmO9hTRbtGiRvH9aAt1DJ9FVdNhi4XLDtcAVmTB6%20pLx5QgOQ3JjOtWvXkD8rg11ZjJttrTPGLc/PxcPDXbNTCXQM3UMnOxWdN7vh%20iuC64OrIO0HYGpIb0zly5Ahu68oI28sN7MAQN3Tm8OHD8l5qA3QM3UMnlT03%20u+GKoC1cHXknCFtDcmM61TXVuK2rtSE31focQ5fkvdQG1oyVxkPhzJDcmI41%20U6hX03iOWTNWGg+FM0NyYzrWTKFeTeM5Zs1YaTwUzgzJjelYM4V6NY3nmDVj%20pfFQODMkN6ZjzRTq1TSeY9aMlcZD4cyQ3JiOWgplDGNTk9ko//ueJD/BE+cp%20L2km03iOqcUqpjtcUkO4lMWMM42HwpkhuTEdtRTau1kosav0vmdGquBJDZWX%20NJNpPMfUYhWjD1dnJ7t1875NS5GXMdo0HgpnhuTGdNRSCPlzo411dLCsmC4P%20yY2hWMXow3W0Vu401TQeCmeG5MZ01FII+XP4IKurYgd3dXlkcjMnh9XsZ+dO%20sIpdbMrI+yeiGM49dZSdOMI2rWTJg+8fWvUV+3IGWzpXOLR7o6xFjeeYWqxi%20DMuNoWjYcyicGZIb01FLIS43U5OFOQJ+8sxh3XKz+GN2q52tXMRmZrCSQnb7%20NstN6Dpx+QL23Zfs40w29312/DA7prtfJ8Sr5QqrKmPzP2Czs2UtajzH1GIV%20ow8XftME7y6LH9TlNxQNew6FM0NyYzpqKcTlBhuVe9mRQ8KGKDdxnqytlX3z%20xf3Cezaz/dvlNcDGBAmnZMV27SLHLpxlse7yYnrTeI6pxSqme6lL5MwxeYGY%20B6Nhz6FwZkhuTEcthUS5yY4TVnAwihHlZlK8sLF9nTCuWbOUrV0mlDx/quvE%20lGC2fjmrr2bnT7MLZ4TBkfjXGzm2fa28oW7TeI6pxSpGH66T9cLzKW6pYV1+%20Q9Gw51A4MyQ3pqOWQqLcxOgHL6cb7stN3mhho3QFW7n4vhXO7SqMkrUH2KyJ%20LDdekKp7d9lnk7sOIcc2fCdvqNs0nmNqsYoxvHZjKBr2HApnhuTGdNRSSCo3%20aUPZ3Tts8yrhHMjN6EDhr/QXU+WnwHAUTBzetYsN4LRyoxINew6FM0NyYzpq%20KSSVG9iWYkFxWPdScdlW1tR4f3kYf7c/niBsJPoIf8ALPxW2R/kLNUCYnFZu%20VKJhz6FwZkhuTEcthWRykxLMbrYL53C5SfJlezaxjnvCZ3Nu3RR+LpnTVXLZ%205+zuXdbaIjy6+m6BcNRp5SbGcDTsORTODMmN6fSSQr3aSD9hSSJ9KIvzeMA/%20KkBYTpb+A4QRpvEcMz1WfY+GxkPhzJDcmI7pKWQB03iOWTNWGg+FM0NyYzrW%20TKFeTeM5Zs1YaTwUzgzJjelYM4V6NY3nmDVjpfFQODMkN6ZjzRTq1TSeY9aM%20lcZD4cyQ3JiONVOoV9N4jlkzVhoPhTNDcmM6/GUmmnnxi5BjdXV18l5qA3TM%20RXjxizVixV/8otl34DgzJDem09zcjNt6Q4g1UqhXKxjs6uHhfuvWLXkvtQE6%20hu6hk8qem91wRXBd7O7V6c4AyY3pdHZ2RgcPHuttjTdDqltdhKunm2v+9Gny%20LmqJ/GnT0Mk6Cw8GcS1wRaJDAnF15D0gbA3JTb8o3bAef0jz/FwxTaiWv6/a%20GoZ2FwUKWhM1dMiNGzfk/dMS6B46ia6iwxYKF6rFtcAVKd2wQd48oQFIbvpL%20QUGBh6cHbnFbGSYp+fn5GtcaDjqZP2MGOqz8LcxluBa4IvKGCW1AcmMG2tra%20ampqqmuqTbN169cpnUZaXV2dZtdrDIEOo9vK36VH61NwcBVwLeTtEZqB5Mb2%20rFu3Tu4iuqHgOBIkN7aHMkoFCo4jQXJjeyijVKDgOBIkN7aHMkoFCo4jQXJj%20exoaGuQuohsKjiNBckMQhJUguSEIwkqQ3BAEYSVIbgiCsBIkN7aHVkNVoOA4%20EiQ3toee9apAwXEkSG5sD2WUChQcR4LkxvZQRqlAwXEkSG5sD2WUChQcR4Lk%20xvbQaqgKFBxHone5aWlpaSAckfZ2/WvLCcJaqMnNlStX0tPTEwmCIPpIcnLy%20/Pnz7969K5UUNbnJyMgYOXLk0qVLKyoqDhIOxLp163BDNNA8hbAMHR0duM1S%20UlKgOFK/Qblpa2vDHfnNN9+0EA4HbgWSG8LSHDp0CGMcqceg3Jw8eRJ35IED%20B+S3qgG+XvJ1QU+sWrVKXlRPQmJCeHj4pk2b5AcIy2NHcmMXnSR6BDMp3GZS%20j0G5wWVGUdyX8lvVAL5+vsqvxYfFJ8TLi+qB1ngO8ly7dq38AGF57Ehu6EG4%20XWMpuVmzds0qPRFDI6AyGLzw3a1bt+LoqVOnTpw4cenSpcbGxj179pw+fVr0%20iDWcP3++rKwMzqtXr57Q09TU1OsheNDV3Xt2HzlyRKyqpacWpUeVBaSnGzoX%20bR09ehQ9aTjWgG2xPOf48eN79+6trKzstW8ANaDwvn37cJYxfvNCckNYB0vJ%20jUhiUiLkZlLuJKkzMCgQzpkfz/Tz98PG6pLV3FNSUsILlG4s9fL2gsfVzXX2%207Nl8ZLR//371Q5gcjogfIY6kxqSMEaVB2WJ3X7rgBaZNm8YLwGbNmiU9JDsX%20OhIbFyu2hV+zVlfLy1dVVyWNTBIPxcTGtBjuW3Nz88SsiaIfNm36NBW/JSC5%20IayDLeUGlpaWNiN/xrbt26Ry8+OPPwYMDuA5ueybZUhXXhiaonIIQ48uyZg+%20bfv27RkZGUL96WmGWpT2Ryzg7eO9+P8WQ1l44Z07d/Z4LtoaHDgYntRxqStW%20ruDigvkgBjI4FBQUhN1hkcO+/fbbpUuXTp4yWaVvGLzwwqh2y5YtBYsKFi9e%20rOK3BEuWLMHFxQhOftW1B8mNXWNLuZkydYrMw+UGEy6e3mfOnMFu+f5yvgtN%20UTmEUQ823D3ccUeWlpZ+9dVX0pLKFmXwAvPmzeO7vNsfzfxIPCQ9F/W76IdX%20vHJMjnhbkCfeDVhdfd398ob7Vl4u/Ao+vj6ff/F58epicZ5lyG92IIi4sitW%20rJBfck1iF0MwwhC2lJuVK1fKPFxuVq1ahW3PQZ78EP7q8uSEpqgcwlCCb8sM%20UxuxfmmLMngB8cFZ7vu52M3KzhIPSc/lbWEoxHcvX77M21qzds3y5cuxMchr%20kFhYLK803jcMpqTv+Z0xYwY/y5DfjNiX1hD2ji3lRlypkXl279nNE6ympga7%20GzZs4LvQFJVDmzdvdtEr0fHjx890c+zYsStXrvTYogxeYM6cOXw3bkQcdmd9%20Mks8JD130+ZNvF3oHXarqqr4LmZAmPhIe8hR71uLXrAqDlZgusTPxZxR3W8W%20SGsIK6NFuUESRg+Pxu7gwMEZGRniM3VoisohZGb4kHBsj00dW1xcjAFF3gd5%20fJm2xxZl8AIYTXwy+5Ps7GxeLf+ckfLcS5cuhYaFwjkifsTChQujoqOwjZ/o%20HrrBH8aFhIbMXzAfUyH0U6VvFRUV48aPW1K4BCMjFHbRq1JTU5Mhv9iHfkJa%20Q1gfLcpNi341JHl0MpI/MiqyaFURT/7Kykr1Q/X19RkTMlzdXLkTYvThhx/2%20WL8SXmD27Nlh4WEu+nWWgkUF0kOyc9GN1HGpvCG0CE1pONbADyFWmRMzxW6M%20Sh7VYrhvtbra4JBg7nTRyyhvyJDfLJDWEDbB4nJjGnX1dc3NzXx72bJlLvq/%207Y2NjeqHOBhKQAtOnjwpTlWMQdQUnIXTz507Jy/RExcvXkRh6ceFRHg3+GxL%205lT2DXMrnU6H6ZX4q6n7+4Ndaw0tFds1GpWbOXPmIP9TxqaIn1URHwOrHOoP%20PQ5hHA+71hpGD8LtHI3Kze49uzH/ShqZNCZlzLRp08rLy4051B+mTJ2CCREq%20lx9wIOxdaxjJjZ3TN7nBxT5I2Cf8s3x2rTWM5MbO6ZvcEHaNvWsNI7mxcxKN%20lJv29vZE/b/VEJbmhx9+kLvMgV38j0KvNNBSsT1jrNwwRVGCIIg+QXJDEISV%20MLPctLa26nS66ppqMtH2le8rLCy8fv26PFgE4WSYTW6E9zRMEL5XgaxHS0hI%20kIeMIJwMs8lNWmaGp79P7Iq5Y6tXp9SQ3be4YuE/nmDqARSh1VAVKDh2jXnk%20pqmpCekUt/KzXHaYTGZQHAQnICXOSMWhZ70qUHDsGvPITXVNNXJpzKEiZbKR%20cbnBz2FzJxujOJRRKlBw7Bpzyg0ySplsZKLcYNsYxVHJqPb29j179syePXuq%20Hvnhbjw8PIqLi+Vew/j5+S1fvly5rUFUgkNoH5Ibi5tUbnKNUByVjMrIyHhI%20gvxwN3/84x8LCwvlXsP8+c9/XrhwoXJbg6gEh9A+JDcWN5nc5PamOCqroatX%20r54zZ86UKVOMkZvW1tadO3eePXtWeujevXuVlZX79u2TPpg3JDe3b9+uqqqq%20rq6+c+eOWNi2qASH0D6WlZuR25akVK5SZqDUQt5PHbVjKd+eeLUsu72yx0M9%20mqECsnqUZuhES5hSbnJ7Uxx1MFHqVW7i4uJefvllaMeTTz752Wefcf/Ro0df%20eeWV11577Z133nnhhRdKS0u5v0e5qaio+N3vfoeq/vCHP6Cq2tpaXoAgTMay%20chM0MXnYvKnKDJRa7Lezx+rW8G2/kdGJmxb3eKhH8x8dm7ChQOmX1aO0Xms2%20o42tKUFwxlbLg2Oy4hgjNwMHDmxra8P2ypUrn3nmmY6Ojs7OzrfffjsnJ4eX%20KSkpGTBgwE8//cR6khsMgl5//fX09HTuTEhIePPNN1ED3yUI07Ce3Ey8Vp5z%20qyr7xsGxtSUTLu8Wy2S17odf2Gg74BcfOaLo88zmvXBKD8EmXN6FvE07uzW3%20Uyee26PcKOvhTWddr0APlTXntFemHl474eIu1IxTxPoN+QXr0I0/vjG1bp10%20DKVshVvaKeHL0mOWfZKi+EiO8U/HpRgjN5hz8e1r166h5I8//njq1ClsYHpV%201c2zzz5bXl7OepIbjINQuKmpiTtPnjyJ3XPnzvFdgjAN68mNb0JkxCeTvCPD%20oBFuXp7xJfO5X5SM6P/Ld/P29BoagrHJkJlZ0kPY9RoWEpiehKP+o4ZDUGTn%20Sk1ZD5rGxqCwQL+k6OQ930pPRJ/dA3z8R8X4xAyJmCO87GVia7mKH5Zxfrt3%20dDj8g1PjPYL8Rles4H5lK13WoUNPXBSfM5ZaXl6ePKaGMUZuxKXimzdvouTx%2048chNI888ojbg5SVlbGe5GbHjh2PPvqoWCGvZP/+/aKHIEzAqnLjlxiVox8O%20jNq9zM3Xi48XpJIhmwSJh4TBBXd26kInj4tanC8rIDNZPWga6iCKlHjipHu1%20ULHYFXN5zeH5mVxWDPn5bsCYuOivP+L1JJct9wwJ4AMlZSuioUCqbo1ydJPS%20/ZnjouKi9vZ2HsxeV0NNk5szZ87wYc6DZQWUcnPixAkUvnDhAnfW19dLd21I%20r8EhtIxV5WZE8Ty+jRkHynMRMUZukOQph1bhdExJQnLHolp5gQdNKTdx3+u1%2048Ga089sdXFzFWdV4xqEd11CVgz5sY25FbYxHxx/YhM3d3/vcfXre2zFGEvR%20LyQjgGIwVZ71FhUV+fr6/s///A+XG189SgXpUW6w/d577wUFBd24cQPbnZ2d%2027Ztu3fvHutJbnD0rbfeio+PxwbKhISE/PWvf+2q3aaoBIfQPlaVm6StX/Pt%20nNvCe+AyLuzINU5ugielYIYyvHDmiNVfhE+fAL+sgMyUciM2LT0RquGOQVa3%20c8IlQUogK4b82MYhKBF+L6ml1q3rsRVjrE9yM336dC40UjD0kBUzJDeNjY1e%20Xl5PP/30q6+++txzzw0cOJA/4VbKDTbq6ureeOONF1988fnnn4f0aOTbuVSC%20Q2gfbcmN/6iYxE2LxNP5oYzGncJYo3tRFhOZXuVGVo9SCPiJEy7rdeRqGXeO%20OSi8tQqyYsifq1+xFsdlMlO2Yoz1SW7MwvXr16FQLS0t8gM9AYW6ePGi3Gt2%20GhvZl1+yq1flfgWWDg5hUbQlNyG5qZELPhCfAXWLgvCi3rTTW+DBKZ4hAb3K%20jawepRCIJw5OSwzLS8tqOwAdCRgrvEmGy4ohPywwPSk0Ly3n5iFht1MnPOHu%20EBpStmKMWV9uNMqOHez555mfH9u9W35IgpMGx1HQltykHlnnEzPE1dMdGS49%20FLlgmpu3p09shHdUWOS8vF7lRlaPUgjEEzNbyoKzx2Dq5DN8SMKGhcIw6raw%20ZGPIn6v/DGFwjnDIe3i4R4CPX2LUpLs1PbZijCnlxnlXQ6E4Tz7JHn6Y/eY3%20bObMHgc7zhsch8CycmNGy2rdn35+Gx9HWMhG7lw6aEiQkf7s9sr0c9uyr1co%20y/fJlHLj1EBxnn2W/cM/CLrzxBPM11d9sEPYF3YjNxay5LLlsSvmji7/fkTx%20PI8gvxGrv1D3m91IbuRwxXn0UfbQQ4I99ZTKYIewL5xdbtLP/oDZWeiU8RGz%20J43e912vfrNbD3LD04xMZk8/zbr/yYuwU5xdbmxuPciNk4PRzS9+wX7+8y6V%20efxxNmAAmzqVRjcOgHnk5vDhwy70bX4m2eiKFQhdXV2dGEynXg3lWvPEE+yR%20R9hjj7G//U22duPUwbF/zCM3zc3NyJkeHxKRqVt8wYcenh63bt0Sg+m8z3rF%20J1OGhzPOGxyHwDxy09nZGTx8aEBq/AP/Nk3Wm6XWrXMf5JGfny8NppNmFP/c%20jbu7+qMoJw2Oo2AeuQFrSzdggBP6QRpmBymKf0QkkxmiFL0o322QR2R0FP8n%20JhFnzCj6VLFzYDa5AQUFBe6eHi6Kb1cg69EQK4xrZFrDKKNUoeDYNeaUG9DW%201lZTU1OteHEtmczq6uqk6zVSaDVUBQqOXWNmuSEIgjAEyQ1BEFaC5IYgCCtB%20ckMQhJUgudEctBqqAgXHriG50Rz0rFcFCo5dQ3KjOSijVKDg2DUkN5qDMkqF%20HoNDn/aykO0r31dYWCh9nXw/IbnRHD1mFMFRBoc+y25pS0hIkMXcZEhuNAet%20hqogCw79p55Fjb9z0aXv75U2BMkNYa/Q9xBY2lL03/0WMDrWXIpDckPYK42N%20jcJQn75lyWLG5QY/h87ONYvikNwQ9kq1/itr6TskLWei3GDbLIpDcuM4HDx4%208OOPPx45cmR0dPTkyZNPnz4tL9EP/Pz8li9fLvfaFC43PBnILGFSuck1h+KQ%203GgOk5eKn3rqKem7wx977LEdO3bIC5mK9D3iNkQaHJIbS5tMbnL7rTgkN5pD%20+azXSNzd3desWdPc3FxRUfHCCy9Acdzc3GRlrl+/jgJ8+6effjp//jzf7ujo%20wDZ+YvvevXuVlZX79u2TfuBCJjcoeezYMciZWAO4fft2VVVVdXX1nTt3ROfl%20y5fRUEtLCwr/+OOP3FlfX4/6Zd/402O7MqTBIbmxtCnlJrd/ikNyozlMlhsp%20QUFBkJuBAwfK/Kj8pZde4tvp6ekow18CsWvXrueffx4icvTo0VdeeeW11157%205513oFml3a92ksoNhhioGfW8++67v/rVr1avXg0nNO53v/vdH//4xz/84Q8v%20v/xybW0tLwwPJnfw/Pd///fjjz9eXFyM3TfeeAOn4yeUiBcz1K4MY+Rm5LYl%20Mcs+gY0o+nz0/u/N/twq5P3UUTuWKv19sqzW/V4RIT2+hXXi1bLs9kqln5tZ%20WjfSxtaUIMJjq+URNllxSG40R//lBgOKAQMGQEqmTJkiO9TW1vboo4+eOHEC%2022+99dZ//ud/zp07F9u5ubmBgYGdnZ1vv/12Tk4OL1xSUoJ6uCKIcoMyEI6Y%20mBhxKNTa2oqfr7/+OvSLn5iQkPDmm2+iJNPLzZ/+9Cf+Hanoz89+9rNZs2Zh%20G0Ob3//+94sXL+Z1GmpXhjFyEzQx2Tchcuhnk4fMzPII8gtIjZ90r1aZSyZb%207Lezx+rWKP19ssyWMnR+Ymu58pDfyOjETYuVfm5mad1ISzu1BZ2EcKcoPpJj%202tNxkhvN0U+5aWxsxNADWuPt7X337l35Ycb+8pe/LFiwALOb5557bunSpb6+%20vnBiTDFv3rxTp07hxJ07d1Z18+yzz5aXlzOJ3ECqUAatSOvE2ATOpqYmvnvy%205Ensnjt3junl5tNPP+V+zKceeeQRcQ4VERGRkZGBDZV2ZRgpN8PmTeXb6ee3%20CWUOrbpfoEM3/vjG1Lp18hFEpy7jx+34e57ZvFe9MAYmObeqhI3rFVltB6SV%20ZF7Zm3NbONTjifwUdHjCxV2G5AYV+sVHYlyGbqAheCZeK0dz/ER4xNa55bRX%20ph5eiwrRf6Hn3UM5Q/4eOyZr4n5/OnTQPhfF54yllpeXJ7k+vUByozlMXioG%20mBlhkoLUDQsLky6gSMEgIjg4uKioyMvLCwIB0cHw5LHHHjt27BgSHnLg9iBl%20ZWVMIjcog/GRrE7oiNR58+ZN9GH//v1MLzeFhYXcv2/fvqeeekoshiHSmDFj%20mL5OQ+3KMGapWCo3GNe4uLtiesV3M85v944O94kZMjg1HgOf0RUruB+q5JcY%20hdnN4LTEQSGDk8u+VSnsPzqWf9gnceNin+FDxHbTzm5FW9ARQydCy9z9vZHA%203sPDI+YI8xGl3ET/X76bt6fX0BAUw+gMHozUsDEoLNAvKTp5z7di67n6tRX3%20AB//UTFoS1qhIb+hjsmakPYHMpSqW6Mc3aR0f+a4qLiovb1dvCjqkNw4Drt2%207frFL36BPB8/fjyfyPQIpOGXv/wl5juzZ89mejmYNGnSb3/7W2yfOXMGp4sL%20ulJEueFl8FN6lA95Lly4wHfr6+vFXWPkRqVdFVTkZuicXPytxl/1qIIZbj6D%20ugYsnbqAMXHRX3/EiyWXLfcMCRBGCp06ZOaQWdldQ4AOXfaNgwYLS+QGIwhI%20A0YKvExUwfTg7DEGT+zUIc8xMeE9CZuW3qPc5ComU9ACnCgOo8TWoaRew0Ji%20V8zlFYbnZ/IKDfkNdkzRhJGW0vf3TZPcOA7PPPMMkvaJJ554q5u//e1v8kL6%2050c///nPn376aZ1Oh93U1FRsR0VF8aPvvfdeUFAQX2qBZm3btu3evXvswaXi%20//3f/w0ICOB/09ra2jCxQkk0Fx8fjw2UDwkJ+etf/8oLGyM3zHC7KqjIjTjU%20d/V0F2dSmFnAM7a2ZPyJTdww1hhXvz6jcYeQkFfLpJUYKpwrSXhYeP4ESJuw%203aHD6GDUrmWGTkw/J0zrxCkMRMp4uYn7Xq8dehNbTz+z1cXNVZxYjWso5RUa%208hvqmLIJI43kxim4elV4B9yDiycCEJqHHuT555+XF9Lj6uo6YMAAvr1+/XqU%20XLJkCd+FdmCSBQF69dVXMc8aOHAgn5RJ5ebcuXPvvvsuyvz7v/87xlObN29m%20+nncG2+88eKLL6JRSA9fjWZGy42hdlVQkRs+mcpq3R86dTyyly8VI9OQhzgq%20NaQ9/K4ebrJKDBXOfVBuoGUeAT6T7lRjYuIx2HfS3RpDJwozKV8vsf4Jl4Xk%20N1JukrZ+Le6KraOhByq81FWhir/HjimbMNJIbhyc3btZRAT7p38S3nBrUa5f%20v44JUUtLi/yAhGvXrh09elT2/AiqcfHiRamnTxjTrkivcgPDtMgj0C9h/cLc%207gx/YCVYb9yPn0qnsnDug3KDGYpXRPDInUsxORr62WSVEzMuCGMoccIiJL8B%20ucHMLnHTInHXkNx0CVb3oGzMwaKuUYyqX9kxZRNGGsmNI6BcKsZw5pNP2Guv%20sUceYY8+yvQfc3FS+rpUnKt/cgxFwLgD24HpSaF5aTk3DwmHOnXCJ0o6hPWa%20wPGJoZPH8QlITnslz1VDhR+QG2Fx98OA1Hg3b09MW7jH0Il+SdGR8/Kwgc4E%20ZY02JDchuamRCz7oWkhSaIG09cFpiWF5aZAwSEnA2BFihYb8hjpGcuO8SJ/1%208uHMM8+wl19mjz3m7FrD+v4gHJbdXukZ5J+w7stc/SfognPGYK7hPTwckyC/%20xCguQ5lNe5Ci8PsMH+Ie4JNSKSz3GCoskxs+bPGJGyp6DJ04/vjGQeGBMM/Q%20wcO/nmlIblKPrPOJGeLq6Q6lyFVogbT1zJay4GyhIXQ7YcNCYclG/xjekN9Q%20x0hunBdklDic+dWv2D//M3voIcFIa5hxctOrQYDSz21TfqI363pFxvnt0k+1%20qBTu1Xo8EemdfvYH4cmXonw/DRO6QUOCjPH32DETjOTGEZg8ef+zzwr6guEM%20Fxoy0cwiNw5jyWXLY1fMHV3+/YjieR5BfiNWf6HuN6+R3DgCfHQzYwb79a/Z%20k0/ez7SnnrL4CrH2IbmRGgZKkfPyQqeMj5g9afS+73r1m9dIbhwB6Wro7t3M%20w4M9/rgwkyLFYcYtFZNZx0huHBNxsPPww8IMy8kVR+TIkSMu9G1+trOMA6sQ%20/8OHD8svjGFIbuwJPth57jlSHIFr167hdo9b+ZkyE8gsbp26hA+yPDw9Wltb%205RfGMCQ39oehTxU7IWmZGZ7+PrEr5o6tlv8DIZmFDKFO2LAwNDUBWr9o0SL5%20JVGF5IawY65cuZI+IcNF8a0IZJa26OHRhr4CTQWSG82h/FQxIdJjcDCe1+l0%201Yp3zpJZwmpra8Xvn+0rfZObHr+uiTAv/fx6LceGgmO/QD36IDfJycmHDh2S%20ewlzQxmlAgXHfoF6QEOkHjW5mT9/fkpKysGDB/mX1BIWgjJKBQqOPQLFgG5A%20PaAhUr+a3GAshNLQp0SCIIi+AN2AeshWY9TkhrAOPa6GEhwKjiNBckMQhJUg%20uSEIwkqQ3BAEYSVIbgiCsBIkN7aHVkNVoOA4EiQ3toc+WqICBceRILmxPZRR%20KlBwHAmSG9tDGaUCBceRILmxPZRRKlBwHAmSG9tDq6EqUHAcCZIbgiCshNnk%20prW1tYEwQHt7uzxeBOF8mEdu5syZI/+HUMKZSElJ2UHf3k70hhnkpqioCDfc%20Bx98UFZWdpB4kHXr1iE4DQ69APHTTz998803SUlJR48elR8jCAn9lZvOzs4x%20Y8ZkZmZevXq1hVAAxelVbtSP2guzZ8+eMmWK3NtvHCM4BKe/cnPt2jWkU3Fx%20sTzPCD3GyI1jPOvF0GbUqFFyb79xjOAQnP7KzYkTJ5BOBw4ckOeZYVauXFnA%20WVSw7JtlW3/Y2tTUJC9kFc6fPx+up7KyUn7MTDiP3Ci/B9ssOEZwCE5/5QaJ%20hJsMSSXPM8PExsXKXmEzLHLY2bNn5eUsz5kzZ3gH9u/fLz9mJpxHbpjiLR9m%20wWGCQzAbyk1KSsqWLVsWfLmAJzyGOWKBq1evotrde3YfOXJEcl4Xx48f37t3%20L8Yj0jERTsFgvqysrOFYg7iKdOrUKQy+Ll261NjYuGfPntOnT3M/pA2VoyTJ%20jXkhuSHUsZncTJ4yme/6+Ppg98uFX/LdQ4cOjYgfIQ58xqSMEWWiqroqaWSS%20eCgmNob7IT3SEVNiUmKtrhb+wKBA7M78eKafvx82VpeshnPjxo2DvAZh19XN%20ddYnsywtN0uWLEF8oHrywElQFyM7whJy4zDBIZgN5WZs6tht27YVLCrAtucg%20z6qqKhzCMIRrxLTp07Zv356RIbyeNS09jR8KCgpy0c+8vv3226VLl3LBgn9w%204GD4U8elrli5gutReHg4xj68KqGGtLQZ+TO2bd8mFoaKYTw1PGa4ReUGnURw%20VqxYIY+ag2IJuSEcCZvJjWjQGigLP1S6sRQedw93DKFLS0u/+uorXgazHn4I%20VldfJ60NxVz0QxWUwS7mX7zYzp07udxMmTpFLPzDDz/wo3zEhMkX37WE3Dib%201jCSG6I3bCY3CYkJhUsLo6KjsB0xNALjDhzCsIXnv8wwjVq+fDk2MA+S1cZP%208fbx5ruXL1/mp6xZu4bLzcqVK8XCRUVF0kowx+GFzS43Tqg1jOSG6A2byQ2f%20CuF0jG6wO3/BfOxu3rzZRT/eOX78+Jlujh07duXKlS1btnBpqKmpkda2afMm%207od2YBeTMr67d+9eLjclJSVi4R07dvCjqB+7GAFZQm6cU2sYyQ3RGzaWG/DR%20Rx9h19fP9/z58xibhA8Jd9Gv7BQXF2PkkvdBHl8SxiEMgnAoJDQE2vT5F59n%20ZGTAf+nSpdCwUPhHxI9YuHAhHy7hJxRKKTeoBKfDiT58Me+LsPAws8uNCVrj%20MKuhlpAbhwkOwbQgNw3HGjw8PeD58kvh4VR9fX3GhAxXN1cuBJChDz/8sKtk%20Q0PmxEzx0KjkUdx/5MiR1HGp3ImjkCHU2dL9ZEoqN2D37t18tRhjKL5QbUa5%20MUFrmAM967WE3DhMcAhmE7kxBgxDICInT57EIKXHQ3zqJOXixYvwY7Aj8ytB%20DTqdjq8WmRHTtIY5UEaR3BDqaFRu7A6TtYY5UEaR3BDqmEducE8cdGL4Z/lM%200xrmQBlFckOoYx65IUzWGuZAq6GJFpAbhwkOwfovN+3t7Yn6/wlyZtT/R8F5%20sITcEI5Ef+WG0U1GdEN3AqEOyQ1hNuhOINQhuSHMBt0JhDokN7anwVFWQy1x%20JzhMcAhGcqMFHOZZryXuBIcJDsFIbrSASkbt2bPn/fffj42NjY6Ozs7Orqqq%20kpdQ0NTU9NJLL7W0tMgPSPDz81u+fLnc228scSeoBIewO6wkN62trTqdrrqm%202hlsX/m+wsLC69evy6NgAJWMcnNze0jCww8//P3338sLPcjFixdRsrm5WX5A%20wp///OeFCxfKvf3GmDuhr6gEh7A7LC43V65cSZuQzv8T0qksISFBHgsDqGTU%206tWra2troVwQ69/+9rfQEU9PT3khPdeuXdu+ffupU6dkcnPv3r3Kysp9+/ZJ%205U8mN2fOnNmxY8eRI0c6Ojq4B7VdvXpVLAAuXLhw8+ZNqUeJ+p1gGirBIewO%20i8vN+MwMD3+f2BVzx1avTqlxCosr/pwrjnpkRIxcDf3LX/4CHRk2bJj8AGMQ%20i2efffatt9569dVX4+PjRbk5evToK6+88tprr73zzjsvvPBCaWkpLy+Vm6io%20qH/7t3977733/vVf//VPf/oTVxmMzl5++eXOzk5epqam5rHHHrt8+TLfNYSR%20v2+fMDI4hF1gWblpampC1sWt/CyXHXYeg+Lgtw4YK3zBu0pwjOS7777z9/f/%20j//4D4iIi4sLRhmyAhiSQFCmTp3K9C81DQ0N5XKD7bfffjsnJ4cXKykpGTBg%20wE8//cQelJvz58+L9QQEBGRmZmL71q1bv/zlL7ds2cIPJSUlBQcH820V+v/L%20Eo6NZeWmuqYaKTfmUJEyJx3YuNzg57DPpvRfcT766CNk/iOPPAIRgV5s27ZN%20VqC+vh6HxLkS5k1cbjCxwsbOnTurusEIqLy8nD0oN1ClrVu3zpkzB4Ll4+Pj%205ubG/WlpaUFBQUz/CnCc+MMPP3C/Cv38TQmHxxpyg8RT5qQDmyg32DaL4gDM%20cd59913Ix+9//3vZIcyknn76aXH3zJkzXG4gNBAptwcpKytjD8qNt7f3f/3X%20f73//vuffvppeHg4DnH/yZMnn3jiCUygFi9ejBmZOLFSof+/JuHYkNyY36Ry%20k9sPxbl79+6dO3fE3YyMDOjIo48+KikicPz4cfjFlV2oDJcbrjs//vjjg8UF%20RLmBpkCS2trauB8zL1FugLu7e35+PmZkGGGJThVM+B0Jp4Lkxvwmk5vc3hTH%200Gro6dOnX3zxxcjIyOzs7KioqMcff5wv38jLMfbmm2+mpKRg4/bt2x4eHuJS%208XvvvYcJ0Y0bN5h+0oSJ2L1795hEbs6ePYvCOp2O6WULkzWp3JSUlGAehzGO%20+mN1EUO/YH8wFBzCHrGN3IzctiSlcpUyUS1tWa37vSJCsq9XKA+JFvJ+6qgd%20S5V+400pN7mqimPoWe+lS5deeumlh7pB2g8dOhROeTnGDh069C//8i+/+c1v%20fv3rX0+aNEmUm8bGRi8vL0y1Xn311eeee27gwIF8uCSdTI0bN+5nP/vZ66+/%20jmkaNEsqN9Am1BkWFiZ61Onxt+snhoJD2CO2kZugicnD5k1VJqqlLbNFeI/d%20xNZy5SHR/EfHJmwoUPqNt7E1JWhlbLX8tzakOOoZ1dTUVFdXh2GIdGKlBEdR%20rLW1VX6AsevXr9fX16t8zhhNYBDBBz5ScOI//uM/YnYm8xtC+av1H/XgEPaF%20tuRm0t2a8Sc2pZ3cjI1e/ROvlefcqsr6+37UP+HyLmVtomVdrxDKXNwll5sO%203fjjG1Pr1mW3V4qFpXKDaqEdaWe35nbqxKqy2g5IK8+8sjfndpXUk3ZKeCVW%20zLJPUhQfyenx6bg2M2rLli1DhgyRDnZ6ReVOMBltBocwDQ3JzbiGUq+IYN+E%20SJ+4od6RYUhadT88YTMmeA0NGZwa7+btGff9XFmF3KAX7v7efiOjvYeHR8zJ%20FeUm4/x27+hwn5ghON0jyG90xQpeXpSbITOzvIaFBKYnoQn/UcO5yiRt/Rp9%20ENVn/KnNrp7uEL4HGu3QoTkXxeeMpZaXlydGSZsZ5e/vHxMTc/r0afkBw6jc%20CSajzeAQpqEZuenQ+cRGRBVM57tD5+T6JUULWW3Ir5cbZD5fiBlbW4K0z2jc%20KWsIJSEoGGjw7bBpwr9TCHLTqQsYExf99Ue8WHLZcs+QAIyVciVyk9m8V6wk%20dPK4qMX52J50p9ozyF/8JNHQue+H5aXJG2WHUVWqbo1ydJPS/ZnjouKi9vZ2%20HiWHWQ1VuRNMxmGCQzDtyA3GGiiZ1bq/a7dReJ1uZtMeQ/5cvdzEfKPXEb1h%20QBFfMl9aJyz93DaUF+dKmDdxucHEChsQKczRuGEENK5+fa50MtWpSzm0akTx%20PKhVSO5Y9JlXErlwWqheYqApOCulqljWqLql6BeSERkxSksKl8CDnzbZHpc2%20rrsj/UXlTiAIph25wZTH1cNN3M25Lbzqe9zRDYb8uXq5SSxdJB4KzhkT/dWH%200jp5te6+XuLuhMuCykBuIDQubq7ohtQgRrkSuQmelIKR1PDCmSNWfxE+fQL8%20vBJInusgD0ygEjctwnRMnFgZaUq5sS3ojNxlKip3AkEw7chNRuMOlMy80jV/%204aMS7Bry5+rlRpwNCbvxwxLWfSmtU6j2gnC6uLgrqAwf3eh15/50SWJcboRh%20lJtrTvewCA2JcgMLnjg69rtPMR2LXdHzgpGKaU1u+EjHLKjcCQTBbCg3EXNy%20kfai5d6rxWwITr5eE/pBWkBqvFC4U1h27cGvl5tB4YFcMpL3fuvm5SmqktQw%20Qomcl5erf7wVlDWayw12A9OTMCfKuXmItyI8t+4QxilcbiZc3o2Saae35Oo1%20yzMkQCo3wlpPkL8wxlF9pt6jaU1uzIjKnUAQzIZy4/LgkxokdvrZH/ziIz2D%20/T0C/SAxGNfwwob8kJuhn032igjxjgpz8/ZM3LhYmduw8cc3QpVgnqGDh389%20U5SbiVfLMP/CVMt7eLhHgI9fYhR/yi5OpiIXTEO1PrERqB+CJZUbCBMqDJue%20oWyuV1PKjW1XQzU+urFtcAjzYhu5UTGoQGZLmTF+yE3S1q8n3amGHmX/dFB5%20imjQEaHMjR7KZLdXYoJm6HPGWa37089v46Me2Vnuft6YmilP6dWUcmPbZ70u%202l67sW1wCPOiObkx3rjcKP2WtjGHisJm3F857qtpTW40PrqxbXAI82LHcjPs%2086kWqlndQianDpmVPeGS2ueYVUxrcmNGVO4Ek3GY4BDMruXGTs0EuWlra1u/%20Yb3sy4PNBY1uCKthWbk5fPiwi/N9m5+6jalYgZjU1dWJUVJZDdXpdDPyZwwO%20HFxTUyM/ZiY0vnajEhzC7rCs3DQ3N+Nu7uc/WDuYJRZ85OHpcevWLXmwJGA4%20U7SqKDY21s3dDYW3bt0qL2E+ND66IRwJy8pNZ2dnyPBhwidl+vjRW0e11Lp1%207oM88vPz5ZHqhg9n/AP8U1JThg4b6urmWrKmRF5Iq6jcCQTBLC03YH3pBgxw%20Qj9IG12xIkXx/4rOY/j1oxflQ2uioqP41+tJEYczkZGR49LGBQwOQNCsozU0%20uiGshsXlBhQUFGBG4KL4EgZnMwQB4xql1hyoODDIaxAKYFAjLT/387nK/6g0%20+zb9iyZhNawhN0z/17umpqZa8X5b57G6ujpD6zUNDQ1///vfZ8+Z7evr6+rq%20KmoT1MdyK8SWwJg7oa/QUrEjYSW5IVSQPuvdW7Y3ITHBzd1NUBwPO1McS9wJ%209CDckSC5sT3KjBIHOxAdzLPsRXEscScog0PYLyQ3tkclozDYSRqZZC9jHEvc%20CSrBIewO88jN3bt35V7CaHrNKIt+qthc4B4guSHUMYPcJCcnHzp0SO4ljMYx%20VkNxD+BOkHv7jWMEh+CYQW7mz5+fkpJy8ODBjo4O+THCCcB1x9XHPYA7QX6M%20ICSYQW4wisZ9hr9siYSzgquPe4Dm1IQ6ZpAbgiAIYyC5IQjCSpDc2B5aDVWB%20guNIkNzYHnrWqwIFx5EgubE9lFEqUHAcCZIb20MZpQIFx5EgubE9lFEqUHAc%20CZIb20OroSpQcBwJkhuCIKwEyQ1BEFaC5IYgCCtBckMQhJUgubE9tBqqAgXH%20kSC5sT30rFcFCo4jQXJjBvr5non5C+YrnUaaygseNAs6jG4rf5cerU/BwVXA%20tZC3R2gGkpv+YvO3aBl6fZUGQSfRVYuGC5XjisgbJrQByU2/KC0txS2eF+Z3%20YIhrdYQNDO0uCvP2dHeLiorUuOKge1FRw9BVdNhC4ToQ4ZYXLrwaENdF3jyh%20AUhuTKezszM6PHSst0tnjBuzqdVFuHq6u6q8elwLoHvoJLqq7L8ZDdcCVyR6%20SBiujrwHhK0huTGd5uZm/CHdEGLZ/DHSCga7eni4a3YdBx1D99BJZc/Nbrgi%20uC64OvJOELaG5MZ0Dh8+jNu60sJ/ro00TE/Qmbq6OnkvtQE6hu6hk8qem91w%20RdAWro68E4StIbkxneqaatzW1dqQm2p9jqFL8l5qA2vGSuOhcGZIbkzHminU%20q2k8x6wZK42HwpkhuTEda6ZQr6bxHLNmrDQeCmeG5MZ0rJlCvZrGc8yasdJ4%20KJwZkhvTsWYK9WoazzFrxkrjoXBmSG5MRy2FMoaxqclslP99T5Kf4InzlJc0%20k2k8x9RiFdMdLqkhXMpixpnGQ+HMkNyYjloK7d0slNhVet8zI1XwpIbKS5rJ%20NJ5jarGK0Yers5PdunnfpqXIyxhtGg+FM0NyYzpqKYT8udHGOjpYVkyXh+TG%20UKxi9OE6Wit3mmoaD4UzQ3JjOmophPw5fJDVVbGDu7o8MrmZk8Nq9rNzJ1jF%20LjZl5P0TUQznnjrKThxhm1ay5MH3D636in05gy2dKxzavVHWosZzTC1WMYbl%20xlA07DkUzgzJjemopRCXm6nJwhwBP3nmsG65Wfwxu9XOVi5iMzNYSSG7fZvl%20JnSduHwB++5L9nEmm/s+O36YHdPdrxPi1XKFVZWx+R+w2dmyFjWeY2qxitGH%20C79pgneXxQ/q8huKhj2HwpkhuTEdtRTicoONyr3syCFhQ5SbOE/W1sq++eJ+%204T2b2f7t8hpgY4KEU7Jiu3aRYxfOslh3eTG9aTzH1GIV073UJXLmmLxAzIPR%20sOdQODMkN6ajlkKi3GTHCSs4GMWIcjMpXtjYvk4Y16xZytYuE0qeP9V1Ykow%20W7+c1Vez86fZhTPC4Ej8640c275W3lC3aTzH1GIVow/XyXrh+RS31LAuv6Fo%202HMonBmSG9NRSyFRbmL0g5fTDfflJm+0sFG6gq1cfN8K53YVRsnaA2zWRJYb%20L0jVvbvss8ldh5BjG76TN9RtGs8xtVjFGF67MRQNew6FM0NyYzpqKSSVm7Sh%207O4dtnmVcA7kZnSg8Ff6i6nyU2A4CiYO79rFBnBauVGJhj2HwpkhuTEdtRSS%20yg1sS7GgOKx7qbhsK2tqvL88jL/bH08QNhJ9hD/ghZ8K26P8hRogTE4rNyrR%20sOdQODMkN6ajlkIyuUkJZjfbhXO43CT5sj2bWMc94bM5t24KP5fM6Sq57HN2%209y5rbREeXX23QDjqtHITYzga9hwKZ4bkxnR6SaFebaSfsCSRPpTFeTzgHxUg%20LCdL/wHCCNN4jpkeq75HQ+OhcGZIbkzH9BSygGk8x6wZK42HwpkhuTEda6ZQ%20r6bxHLNmrDQeCmeG5MZ0rJlCvZrGc8yasdJ4KJwZkhvTsWYK9WoazzFrxkrj%20oXBmSG5Mx5op1KtpPMesGSuNh8KZIbkxHXrxi/HQi18IRnLTH+i1dsZDr7Uj%20GMlNfxBe2hsSqJWX9rq55k+fLu+ilsifPg2dtNJLe0OD6KW9GoTkpl+UbtiA%20P6R5fq6YJlRH2MDQ7qJA4QXhUUMjbty4Ie+flkD30EkoDjpsoXChWlwLXBFc%20F3nzhAYguekvBQUFHp4euMVtZZik5Ofna1xrOOgkuooOK38LcxmuBa6IvGFC%20G5DcmIG2traamprqmmrrW11dnWbXawyBDqPbyt+l/4argGshb4/QDCQ3BEFY%20CZIbgiCsBMkNQRBW4v8BaNc+jyGxxuQAAAAASUVORK5CYII=%20"></p>
+
+<h3 id="远端">远端</h3>
+
+<p>首先，在远端（信息的接收端）接收信息时，将接收到的时间戳（近端的时间）与本地时间进行比较，得到差值如下图所示。</p>
+
+\[\text{Trigger delay} = T_{\text{Far}}(\text{hello}) - T_{\text{Near}}(\text{hello})\]
+
+<p>结果表明进行<code class="language-plaintext highlighter-rouge">100</code>次通信时，差值稳定在<code class="language-plaintext highlighter-rouge">145.78</code>毫秒左右。它代表两机的时间戳绝对值有一定差距，但每次通信的随机延时相对稳定，稳定性用方差表示，标准差大小为<code class="language-plaintext highlighter-rouge">0.09</code>毫秒。</p>
+
+<p><img src="/assets/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C%20130dc9c7091480d3b07fc37fd1bdf712/e337dc2778b9dd1267c8375349b7289.png" alt="e337dc2778b9dd1267c8375349b7289.png"></p>
+
+<h3 id="近端">近端</h3>
+
+<p>为了度量两机通信的随机延时，我将远端返回的消息进行统计。这个统计在近端进行，对于某一条消息，近端将发送时的时间戳与接收到的回执时的时间戳进行比较。</p>
+
+\[\text{Loop delay} = T_{\text{Near}}(\text{welcome}) - T_{\text{Near}}(\text{hello})\]
+
+<p>结果表明消息从发送到接收回执的延时平均值稳定在<code class="language-plaintext highlighter-rouge">0.69</code>毫秒左右，其最大延时为<code class="language-plaintext highlighter-rouge">1.62</code>毫秒，标准差为<code class="language-plaintext highlighter-rouge">0.47</code>毫秒。这基本满足毫秒级的通信要求。</p>
+
+<p><img src="/assets/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C%20130dc9c7091480d3b07fc37fd1bdf712/e89411346f7a5ee6d6282dca66bc508.png" alt="e89411346f7a5ee6d6282dca66bc508.png"></p>
+
+<h2 id="网络拥堵情况">网络拥堵情况</h2>
+
+<p>由于<code class="language-plaintext highlighter-rouge">TCP/IP</code>通信需要通过网络通信，因此不可避免地受到网络负载的影响。我通过<code class="language-plaintext highlighter-rouge">scp</code>上传大数据的方法模拟了网络拥堵的极端情况。结果表明在<code class="language-plaintext highlighter-rouge">111.2MB/s</code>的传输速率下，通信最大延时达到了<code class="language-plaintext highlighter-rouge">10</code>毫秒。虽然有办法对该延时进行补偿，但具体部署时还需要注意这类极端情况。</p>
+
+<p><img src="/assets/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C%20130dc9c7091480d3b07fc37fd1bdf712/image%201.png" alt="image.png"></p>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+        
+
+  <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time class="dt-published" datetime="2024-10-31T00:00:00+00:00">October 31, 2024</time></p>
+
+      </footer>
+
+      <section class="page__share">
+  
+
+  <a href="https://twitter.com/intent/tweet?text=TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C%20%2Fbook%2Fit%2Ftcp%2F2024%2F10%2F31%2FTCP%25E5%2587%2586%25E6%2597%25B6%25E5%2590%258C%25E6%25AD%25A5%25E7%259A%2584%25E5%258F%25AF%25E8%25A1%258C%25E6%2580%25A7%25E5%25AE%259E%25E9%25AA%258C-130dc9c7091480d3b07fc37fd1bdf712.html" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=%2Fbook%2Fit%2Ftcp%2F2024%2F10%2F31%2FTCP%25E5%2587%2586%25E6%2597%25B6%25E5%2590%258C%25E6%25AD%25A5%25E7%259A%2584%25E5%258F%25AF%25E8%25A1%258C%25E6%2580%25A7%25E5%25AE%259E%25E9%25AA%258C-130dc9c7091480d3b07fc37fd1bdf712.html" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
+
+  <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=/book/it/tcp/2024/10/31/TCP%E5%87%86%E6%97%B6%E5%90%8C%E6%AD%A5%E7%9A%84%E5%8F%AF%E8%A1%8C%E6%80%A7%E5%AE%9E%E9%AA%8C-130dc9c7091480d3b07fc37fd1bdf712.html" class="btn btn--linkedin" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on LinkedIn"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i><span> LinkedIn</span></a>
+</section>
+
+
+      
+  <nav class="pagination">
+    
+      <a href="/book/it/docker/2024/10/24/docker.html" class="pagination--pager" title="Docker踩坑记
+">Previous</a>
+    
+    
+      <a href="/book/news/2024/11/03/%E6%97%B6%E9%97%B4%E9%83%BD%E5%8E%BB%E5%93%AA%E4%BA%86-%E5%85%A8%E5%9B%BD%E6%97%B6%E9%97%B4%E5%88%A9%E7%94%A8%E8%B0%83%E6%9F%A5%E5%85%AC%E6%8A%A5-133dc9c70914802db4e6d007f14067b6.html" class="pagination--pager" title="时间都去哪了？全国时间利用调查公报
+">Next</a>
+    
+  </nav>
+
+    </div>
+
+    
+  </article>
+
+  
+  
+    
+<div class="page__related">
+  
+  <h2 class="page__related-title">You May Also Enjoy</h2>
+  <div class="grid__wrapper">
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/2025/03/07/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%B8%AD%E7%9A%84%E6%95%B0.html" rel="permalink">计算机中的数
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">数字是非常有趣的东西，在一维尺度上，只需要简单操作就能以任意高的密度描述整个实数轴。另外，当它与计算机结合时就更有趣了。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/computervision/imageprocessing/2025/02/26/random-image-corse-to-fine.html" rel="permalink">粗分辨率相机能否重现细分辨率图像
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          less than 1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">摘要：本文探讨了如何通过低分辨率相机还原细分辨率图像信息的方法。通过对原始图像进行多样本加噪处理，并使用低分辨率相机进行多次拍摄，最终通过叠加拍摄结果来重建高分辨率图像。实验结果表明，该方法在RGB颜色空间的自然图像上也能取得较好的效果。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/fractal/dimension/2025/02/20/fractal-curve-fill-2d-space.html" rel="permalink">二维分形曲线铺满二维平面
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          less than 1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">本文以Koch分形曲线为例，展示了分形曲线的维度计算原理，并通过实验展示了随曲线维度的提高，分形曲线逐渐铺满二维平面的过程。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/programming/python/blocker/2025/02/13/Python-blocker-using-queue.html" rel="permalink">使用Queue的Python阻塞器
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">程序设计的核心不在键盘上，而在需求里。
+本文就是针对这样一系列常见需求：
+
+</p>
+  </article>
+</div>
+
+    
+  </div>
+</div>
+
+  
+  
+</div>
+
+      <section style="display: none">
+    <!--
+    Convert the assets image src,
+    it is the compatible way to support both md preview locally and static assets url.
+    -->
+
+    <p id="site-baseurl">/book</p>
+
+    <script>
+        {
+            let siteBaseurl = document.getElementById('site-baseurl').textContent,
+                imgs = document.getElementsByClassName('page__content')[0].getElementsByTagName('img'),
+                img, src, dst;
+
+            console.log(`Converting assets image src for ${imgs.length} images.`)
+            for (let i = 0; i < imgs.length; i++) {
+                img = imgs[i];
+                src = img.src;
+                dst = img.src.replace('/assets/', siteBaseurl + '/assets/')
+                img.src = dst
+                img.style.border = 'solid red';
+                console.log(`${i + 1} | ${imgs.length} : ${src} -> ${dst}`)
+            }
+        }
+    </script>
+
+</section>
+
+<section>
+    <!-- Erase the first <p> whose textContent is "[toc]" -->
+    <script>
+        {
+            let ps = document.getElementsByTagName('p'), p;
+            for (let i = 0; i < ps.length; i++) {
+                p = ps[i];
+                if (p.textContent.toLowerCase() === '[toc]') {
+                    p.textContent = ''
+                    console.log('Found [toc] and erased it.')
+                    break
+                }
+            }
+        }
+    </script>
+</section>
+
+<section>
+    <!-- It suffers from CORS permission
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    -->
+    <!-- <script src=" https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js"></script> -->
+</section>
+    </div>
+
+    
+
+    <div id="footer" class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+        <div class="page__footer-follow">
+  <ul class="social-icons">
+    
+
+    
+
+    
+      <li><a href="/book/feed.xml"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
+    
+  </ul>
+</div>
+
+<div class="page__footer-copyright">© 2025 <a href="">Listenzcc talks a lot</a>. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    
+  <script src="/book/assets/js/main.min.js"></script>
+
+
+
+
+
+
+
+
+
+  </body>
+</html>

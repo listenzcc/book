@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<!--
+  Minimal Mistakes Jekyll Theme 4.26.2 by Michael Rose
+  Copyright 2013-2024 Michael Rose - mademistakes.com | @mmistakes
+  Free for personal and commercial use under the MIT license
+  https://github.com/mmistakes/minimal-mistakes/blob/master/LICENSE
+--><html lang="en" class="no-js">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+
+<!-- begin _includes/seo.html --><title>二项分布二三事（一） - Listenzcc talks a lot</title>
+<meta name="description" content="在古典概率模型中，概率总可以表示成大量重复实验的叠加结果。 二项分布针对实验结果为二元值时（比如发生与否、成功与否等）的统计量进行计算，是十分有用的统计工具。 本系列尝试使用尽量简单明了的方法，将它的内涵与外延记录下来。    [toc]  定义  假设 $ X \sim B(p, N) $，这指的是两个方面：     在一次实验中，事件发生与否，且发生的概率为 $ p $。   在 $ N $ 次独立实验中，事件发生了 $ x $ 次。   因此，$ X $ 的概率分布为：  [P(x) = C_N^x \cdot p^x \cdot q^{N-x}]  其中 $ p+q=1 $，且 $ C_N^x $ 表示从 $ N $ 中选择 $ x $ 个的组合数。  该组合数的计算方式为：  [C_N^x = \frac{N!}{x! \cdot (N-x)!}]  并且，$ P(x) $ 遵循完全的概率测度：  [\sum_{x=0}^{N} P(x) = (p+q)^N = 1]  $\blacksquare$  事例：连续投资的指数爆炸  假设有一个游戏，包含 $ N $ 次独立实验（投资），每次实验遵循二项分布规则：     如果事件发生（概率为 $ p $），则资产增长到原来的 $ a = 9 $ 倍；   如果事件未发生（概率为 $ q $），则资产减少到原来的 $ b = 0.1 $ 倍。   那么，最终资产的期望为：  [\sum_{x=0}^{N} P(x) \cdot a^x \cdot b^{N-x}]  事实上，这种投资与收益是几乎不可能长期维持的，因为指数增长得实在是太快了。假设事件连续发生$10$次，那么资产会膨胀到初始值的$9^{10}=3,486,784,401$倍（约为 34 亿倍）。 同样的，如果事件连续未发生这么多次，那么资产会缩水到原来的这么多分之一，可以认为几乎不存在了。  由于这个数值通常非常大（或者非常小），并且它的增长（缩水）速度也相当快，因此更好的方法是使用对数刻度来处理：  [\sum_{x=0}^{N} P(x) \cdot \log{\left( a^x \cdot b^{N-x} \right)}]  所谓对数就是将特别大（或者特别小）的数字转换成它是$10$的几次方，前面的例子中，$\log{9^{10}} \approx 9.5424$，以及$\log{0.1^{10}} = -10$。 也就是说，在对数尺度下的正数代表增长、负数代表缩小。且只有当数值发生倍数变化时，才会在对数尺度上产生明显变化。  但是这样的做法同样有问题，这几乎是一个常识的，“如何看待资产”的问题。如果一个人用1万元投资。那么当他的资产增长到100万元时，在对数坐标上得到的值是2；而当他的资产缩水到100元时，在对数坐标上得到的值是-2。 虽然二者在坐标轴上相加为零，但前者与后者带来的心理和社会收益却是完全无法相提并论的。 当然，除此之外，对数坐标还是比较适合显示连续相乘的结果。  我将以上算式的结果绘制如下，如图所示， 如果你按照这个规则进行投资，你会随着时间的推移失去所有的钱，因为在对数刻度下，在中心概率附近，收益的期望值是负数。    分散投资策略  之前的分析结果表明，如果你将所有资金投入其中，长期来看你将失去所有的资金。 然而，如果你将资金分成 $ m $ 份，并分 $ m $ 次进行操作，情况会有所不同。 对于一次实验，其期望为：  [E(Y) = \frac{1}{m} \sum_{x=0}^{m} P_m(x) \left( a \cdot x + b \cdot (m - x) \right)]  其中 $ P_m(x) $ 是 $ m $ 次实验中 $ x $ 次成功的二项分布。 事实证明，如果你将资金分开进行实验，风险（用标准差衡量）会有所减少。标准差的计算方式为：  [\text{Var.} = E(Y^2) - E^2(Y)]  其中：  [E(Y^2) = \sum_{x=0}^{m} P_m(x) \left( \frac{a \cdot x + b \cdot (m - x)}{m} \right)^2]    Gamma 函数  Gamma 函数（$ \Gamma $）的定义为：  [\Gamma(z) = \int_0^\infty t^{z-1} e^{-t} dt]  它具有一个重要的性质：  [\begin{cases} \Gamma(z+1) &amp;= z \Gamma(z)  \Gamma(0) &amp;= 1 \end{cases} \Rightarrow \Gamma(n+1) = n!, n \in [0, 1, 2, \dots]]  因此，$ P(x) $ 可以通过 Beta 函数来表示：  [\text{Beta}(x, y) = \frac{\Gamma(x+y+1)}{\Gamma(x+1) \Gamma(y+1)}]  并且，  [P_m(x) = \text{Beta}(x, m-x) \cdot p^x \cdot q^{m-x}]  $\blacksquare$">
+
+
+  <meta name="author" content="listenzcc">
+  
+  <meta property="article:author" content="listenzcc">
+  
+
+
+<meta property="og:type" content="article">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Listenzcc talks a lot">
+<meta property="og:title" content="二项分布二三事（一）">
+<meta property="og:url" content="/book/probability/binomial/2024/11/22/binomial-distribution-1.html">
+
+
+  <meta property="og:description" content="在古典概率模型中，概率总可以表示成大量重复实验的叠加结果。 二项分布针对实验结果为二元值时（比如发生与否、成功与否等）的统计量进行计算，是十分有用的统计工具。 本系列尝试使用尽量简单明了的方法，将它的内涵与外延记录下来。    [toc]  定义  假设 $ X \sim B(p, N) $，这指的是两个方面：     在一次实验中，事件发生与否，且发生的概率为 $ p $。   在 $ N $ 次独立实验中，事件发生了 $ x $ 次。   因此，$ X $ 的概率分布为：  [P(x) = C_N^x \cdot p^x \cdot q^{N-x}]  其中 $ p+q=1 $，且 $ C_N^x $ 表示从 $ N $ 中选择 $ x $ 个的组合数。  该组合数的计算方式为：  [C_N^x = \frac{N!}{x! \cdot (N-x)!}]  并且，$ P(x) $ 遵循完全的概率测度：  [\sum_{x=0}^{N} P(x) = (p+q)^N = 1]  $\blacksquare$  事例：连续投资的指数爆炸  假设有一个游戏，包含 $ N $ 次独立实验（投资），每次实验遵循二项分布规则：     如果事件发生（概率为 $ p $），则资产增长到原来的 $ a = 9 $ 倍；   如果事件未发生（概率为 $ q $），则资产减少到原来的 $ b = 0.1 $ 倍。   那么，最终资产的期望为：  [\sum_{x=0}^{N} P(x) \cdot a^x \cdot b^{N-x}]  事实上，这种投资与收益是几乎不可能长期维持的，因为指数增长得实在是太快了。假设事件连续发生$10$次，那么资产会膨胀到初始值的$9^{10}=3,486,784,401$倍（约为 34 亿倍）。 同样的，如果事件连续未发生这么多次，那么资产会缩水到原来的这么多分之一，可以认为几乎不存在了。  由于这个数值通常非常大（或者非常小），并且它的增长（缩水）速度也相当快，因此更好的方法是使用对数刻度来处理：  [\sum_{x=0}^{N} P(x) \cdot \log{\left( a^x \cdot b^{N-x} \right)}]  所谓对数就是将特别大（或者特别小）的数字转换成它是$10$的几次方，前面的例子中，$\log{9^{10}} \approx 9.5424$，以及$\log{0.1^{10}} = -10$。 也就是说，在对数尺度下的正数代表增长、负数代表缩小。且只有当数值发生倍数变化时，才会在对数尺度上产生明显变化。  但是这样的做法同样有问题，这几乎是一个常识的，“如何看待资产”的问题。如果一个人用1万元投资。那么当他的资产增长到100万元时，在对数坐标上得到的值是2；而当他的资产缩水到100元时，在对数坐标上得到的值是-2。 虽然二者在坐标轴上相加为零，但前者与后者带来的心理和社会收益却是完全无法相提并论的。 当然，除此之外，对数坐标还是比较适合显示连续相乘的结果。  我将以上算式的结果绘制如下，如图所示， 如果你按照这个规则进行投资，你会随着时间的推移失去所有的钱，因为在对数刻度下，在中心概率附近，收益的期望值是负数。    分散投资策略  之前的分析结果表明，如果你将所有资金投入其中，长期来看你将失去所有的资金。 然而，如果你将资金分成 $ m $ 份，并分 $ m $ 次进行操作，情况会有所不同。 对于一次实验，其期望为：  [E(Y) = \frac{1}{m} \sum_{x=0}^{m} P_m(x) \left( a \cdot x + b \cdot (m - x) \right)]  其中 $ P_m(x) $ 是 $ m $ 次实验中 $ x $ 次成功的二项分布。 事实证明，如果你将资金分开进行实验，风险（用标准差衡量）会有所减少。标准差的计算方式为：  [\text{Var.} = E(Y^2) - E^2(Y)]  其中：  [E(Y^2) = \sum_{x=0}^{m} P_m(x) \left( \frac{a \cdot x + b \cdot (m - x)}{m} \right)^2]    Gamma 函数  Gamma 函数（$ \Gamma $）的定义为：  [\Gamma(z) = \int_0^\infty t^{z-1} e^{-t} dt]  它具有一个重要的性质：  [\begin{cases} \Gamma(z+1) &amp;= z \Gamma(z)  \Gamma(0) &amp;= 1 \end{cases} \Rightarrow \Gamma(n+1) = n!, n \in [0, 1, 2, \dots]]  因此，$ P(x) $ 可以通过 Beta 函数来表示：  [\text{Beta}(x, y) = \frac{\Gamma(x+y+1)}{\Gamma(x+1) \Gamma(y+1)}]  并且，  [P_m(x) = \text{Beta}(x, m-x) \cdot p^x \cdot q^{m-x}]  $\blacksquare$">
+
+
+
+
+
+
+
+  <meta property="article:published_time" content="2024-11-22T00:00:00+00:00">
+
+
+
+
+
+
+<link rel="canonical" href="/book/probability/binomial/2024/11/22/binomial-distribution-1.html">
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- end _includes/seo.html -->
+
+
+
+  <link href="/book/feed.xml" type="application/atom+xml" rel="alternate" title="Listenzcc talks a lot Feed">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script type="text/javascript">
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+  window.enable_copy_code_button = true;
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/book/assets/css/main.css">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css"></noscript>
+
+
+
+    <!-- start custom head snippets -->
+
+<!-- insert favicons. use https://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+  <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">MathJax.Hub.Config({         tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] }       });</script>
+</head>
+
+  <body class="layout--single">
+    <nav class="skip-links">
+  <ul>
+    <li><a href="#site-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        
+        <a class="site-title" href="/book/">
+          Listenzcc talks a lot
+          
+        </a>
+        <ul class="visible-links">
+<li class="masthead__menu-item">
+              <a href="/book/help-center/">Help</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/search/">Search</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/year-archive/">Posts</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/categories/">Categories</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="https://github.com/listenzcc" target="_blank">External Link</a>
+            </li>
+</ul>
+        
+        <button class="greedy-nav__toggle hidden" type="button">
+          <span class="visually-hidden">Toggle menu</span>
+          <div class="navicon"></div>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+    <div class="initial-content">
+      
+
+
+
+
+  
+    
+
+
+
+<nav class="breadcrumbs">
+  <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+    
+    
+    
+      
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/" itemprop="item"><span itemprop="name">Home</span></a>
+
+          <meta itemprop="position" content="1">
+        </li>
+        <span class="sep">/</span>
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/probability" itemprop="item"><span itemprop="name">Probability</span></a>
+          <meta itemprop="position" content="2">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/binomial" itemprop="item"><span itemprop="name">Binomial</span></a>
+          <meta itemprop="position" content="3">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/2024" itemprop="item"><span itemprop="name">2024</span></a>
+          <meta itemprop="position" content="4">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/11" itemprop="item"><span itemprop="name">11</span></a>
+          <meta itemprop="position" content="5">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/22" itemprop="item"><span itemprop="name">22</span></a>
+          <meta itemprop="position" content="6">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        <li class="current">二项分布二三事（一）</li>
+      
+    
+  </ol>
+</nav>
+
+  
+
+
+<div id="main" role="main">
+  
+  <div class="sidebar sticky">
+  
+
+
+<div itemscope itemtype="https://schema.org/Person" class="h-card">
+
+  
+    <div class="author__avatar">
+      <a href="/book/">
+        <img src="/book/assets/profile/bio-photo.jpg" alt="listenzcc" itemprop="image" class="u-photo">
+      </a>
+    </div>
+  
+
+  <div class="author__content">
+    <h3 class="author__name p-name" itemprop="name">
+      <a class="u-url" rel="me" href="/book/" itemprop="url">listenzcc</a>
+    </h3>
+    
+      <div class="author__bio p-note" itemprop="description">
+        <p>I am a programmer.</p>
+
+      </div>
+    
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">Follow</button>
+    <ul class="author__urls social-icons">
+      
+        <li itemprop="homeLocation" itemscope itemtype="https://schema.org/Place">
+          <i class="fas fa-fw fa-map-marker-alt" aria-hidden="true"></i> <span itemprop="name" class="p-locality">Somewhere</span>
+        </li>
+      
+
+      
+        
+          
+            <li><a href="https://github.com/listenzcc" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-fw fa-github" aria-hidden="true"></i><span class="label">GitHub</span></a></li>
+          
+        
+          
+            <li><a href="https://mademistakes.com" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fas fa-fw fa-link" aria-hidden="true"></i><span class="label">Made Mistakes</span></a></li>
+          
+        
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      <!--
+  <li>
+    <a href="http://link-to-whatever-social-network.com/user/" itemprop="sameAs" rel="nofollow noopener noreferrer me">
+      <i class="fas fa-fw" aria-hidden="true"></i> Custom Social Profile Link
+    </a>
+  </li>
+-->
+    </ul>
+  </div>
+</div>
+
+  
+  </div>
+
+
+
+  <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
+    <meta itemprop="headline" content="二项分布二三事（一）">
+    <meta itemprop="description" content="在古典概率模型中，概率总可以表示成大量重复实验的叠加结果。二项分布针对实验结果为二元值时（比如发生与否、成功与否等）的统计量进行计算，是十分有用的统计工具。本系列尝试使用尽量简单明了的方法，将它的内涵与外延记录下来。[toc]定义假设 $ X \sim B(p, N) $，这指的是两个方面：  在一次实验中，事件发生与否，且发生的概率为 $ p $。  在 $ N $ 次独立实验中，事件发生了 $ x $ 次。因此，$ X $ 的概率分布为：[P(x) = C_N^x \cdot p^x \cdot q^{N-x}]其中 $ p+q=1 $，且 $ C_N^x $ 表示从 $ N $ 中选择 $ x $ 个的组合数。该组合数的计算方式为：[C_N^x = \frac{N!}{x! \cdot (N-x)!}]并且，$ P(x) $ 遵循完全的概率测度：[\sum_{x=0}^{N} P(x) = (p+q)^N = 1]$\blacksquare$事例：连续投资的指数爆炸假设有一个游戏，包含 $ N $ 次独立实验（投资），每次实验遵循二项分布规则：  如果事件发生（概率为 $ p $），则资产增长到原来的 $ a = 9 $ 倍；  如果事件未发生（概率为 $ q $），则资产减少到原来的 $ b = 0.1 $ 倍。那么，最终资产的期望为：[\sum_{x=0}^{N} P(x) \cdot a^x \cdot b^{N-x}]事实上，这种投资与收益是几乎不可能长期维持的，因为指数增长得实在是太快了。假设事件连续发生$10$次，那么资产会膨胀到初始值的$9^{10}=3,486,784,401$倍（约为 34 亿倍）。同样的，如果事件连续未发生这么多次，那么资产会缩水到原来的这么多分之一，可以认为几乎不存在了。由于这个数值通常非常大（或者非常小），并且它的增长（缩水）速度也相当快，因此更好的方法是使用对数刻度来处理：[\sum_{x=0}^{N} P(x) \cdot \log{\left( a^x \cdot b^{N-x} \right)}]所谓对数就是将特别大（或者特别小）的数字转换成它是$10$的几次方，前面的例子中，$\log{9^{10}} \approx 9.5424$，以及$\log{0.1^{10}} = -10$。也就是说，在对数尺度下的正数代表增长、负数代表缩小。且只有当数值发生倍数变化时，才会在对数尺度上产生明显变化。但是这样的做法同样有问题，这几乎是一个常识的，“如何看待资产”的问题。如果一个人用1万元投资。那么当他的资产增长到100万元时，在对数坐标上得到的值是2；而当他的资产缩水到100元时，在对数坐标上得到的值是-2。虽然二者在坐标轴上相加为零，但前者与后者带来的心理和社会收益却是完全无法相提并论的。当然，除此之外，对数坐标还是比较适合显示连续相乘的结果。我将以上算式的结果绘制如下，如图所示，如果你按照这个规则进行投资，你会随着时间的推移失去所有的钱，因为在对数刻度下，在中心概率附近，收益的期望值是负数。分散投资策略之前的分析结果表明，如果你将所有资金投入其中，长期来看你将失去所有的资金。然而，如果你将资金分成 $ m $ 份，并分 $ m $ 次进行操作，情况会有所不同。对于一次实验，其期望为：[E(Y) = \frac{1}{m} \sum_{x=0}^{m} P_m(x) \left( a \cdot x + b \cdot (m - x) \right)]其中 $ P_m(x) $ 是 $ m $ 次实验中 $ x $ 次成功的二项分布。事实证明，如果你将资金分开进行实验，风险（用标准差衡量）会有所减少。标准差的计算方式为：[\text{Var.} = E(Y^2) - E^2(Y)]其中：[E(Y^2) = \sum_{x=0}^{m} P_m(x) \left( \frac{a \cdot x + b \cdot (m - x)}{m} \right)^2]Gamma 函数Gamma 函数（$ \Gamma $）的定义为：[\Gamma(z) = \int_0^\infty t^{z-1} e^{-t} dt]它具有一个重要的性质：[\begin{cases}\Gamma(z+1) &amp;= z \Gamma(z) \Gamma(0) &amp;= 1\end{cases}\Rightarrow \Gamma(n+1) = n!, n \in [0, 1, 2, \dots]]因此，$ P(x) $ 可以通过 Beta 函数来表示：[\text{Beta}(x, y) = \frac{\Gamma(x+y+1)}{\Gamma(x+1) \Gamma(y+1)}]并且，[P_m(x) = \text{Beta}(x, m-x) \cdot p^x \cdot q^{m-x}]$\blacksquare$">
+    <meta itemprop="datePublished" content="2024-11-22T00:00:00+00:00">
+    
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 id="page-title" class="page__title" itemprop="headline">
+            <a href="/book/probability/binomial/2024/11/22/binomial-distribution-1.html" itemprop="url">二项分布二三事（一）
+</a>
+          </h1>
+          
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          1 minute read
+        
+      </span>
+    
+  </p>
+
+
+        </header>
+      
+
+      <section class="page__content" itemprop="text">
+        
+          <aside class="sidebar__right sticky">
+            <nav class="toc">
+              <header><h4 class="nav__title">
+<i class="fas fa-music"></i> Table of contents</h4></header>
+              <ul class="toc__menu">
+<li><a href="#%E5%AE%9A%E4%B9%89">定义</a></li>
+<li>
+<a href="#%E4%BA%8B%E4%BE%8B%E8%BF%9E%E7%BB%AD%E6%8A%95%E8%B5%84%E7%9A%84%E6%8C%87%E6%95%B0%E7%88%86%E7%82%B8">事例：连续投资的指数爆炸</a><ul><li><a href="#%E5%88%86%E6%95%A3%E6%8A%95%E8%B5%84%E7%AD%96%E7%95%A5">分散投资策略</a></li></ul>
+</li>
+<li><a href="#gamma-%E5%87%BD%E6%95%B0">Gamma 函数</a></li>
+</ul>
+            </nav>
+          </aside>
+        
+        <p>在古典概率模型中，概率总可以表示成大量重复实验的叠加结果。
+二项分布针对实验结果为二元值时（比如发生与否、成功与否等）的统计量进行计算，是十分有用的统计工具。
+本系列尝试使用尽量简单明了的方法，将它的内涵与外延记录下来。</p>
+
+<hr>
+
+<p>[toc]</p>
+
+<h2 id="定义">定义</h2>
+
+<p>假设 $ X \sim B(p, N) $，这指的是两个方面：</p>
+
+<ol>
+  <li>在一次实验中，事件发生与否，且发生的概率为 $ p $。</li>
+  <li>在 $ N $ 次独立实验中，事件发生了 $ x $ 次。</li>
+</ol>
+
+<p>因此，$ X $ 的概率分布为：</p>
+
+\[P(x) = C_N^x \cdot p^x \cdot q^{N-x}\]
+
+<p>其中 $ p+q=1 $，且 $ C_N^x $ 表示从 $ N $ 中选择 $ x $ 个的组合数。</p>
+
+<p>该组合数的计算方式为：</p>
+
+\[C_N^x = \frac{N!}{x! \cdot (N-x)!}\]
+
+<p>并且，$ P(x) $ 遵循完全的概率测度：</p>
+
+\[\sum_{x=0}^{N} P(x) = (p+q)^N = 1\]
+
+<p>$\blacksquare$</p>
+
+<h2 id="事例连续投资的指数爆炸">事例：连续投资的指数爆炸</h2>
+
+<p>假设有一个游戏，包含 $ N $ 次独立实验（投资），每次实验遵循二项分布规则：</p>
+
+<ul>
+  <li>如果事件发生（概率为 $ p $），则资产增长到原来的 $ a = 9 $ 倍；</li>
+  <li>如果事件未发生（概率为 $ q $），则资产减少到原来的 $ b = 0.1 $ 倍。</li>
+</ul>
+
+<p>那么，最终资产的期望为：</p>
+
+\[\sum_{x=0}^{N} P(x) \cdot a^x \cdot b^{N-x}\]
+
+<p>事实上，这种投资与收益是几乎不可能长期维持的，因为指数增长得实在是太快了。假设事件连续发生$10$次，那么资产会膨胀到初始值的$9^{10}=3,486,784,401$倍（约为 34 亿倍）。
+同样的，如果事件连续未发生这么多次，那么资产会缩水到原来的这么多分之一，可以认为几乎不存在了。</p>
+
+<p>由于这个数值通常非常大（或者非常小），并且它的增长（缩水）速度也相当快，因此更好的方法是使用对数刻度来处理：</p>
+
+\[\sum_{x=0}^{N} P(x) \cdot \log{\left( a^x \cdot b^{N-x} \right)}\]
+
+<p>所谓对数就是将特别大（或者特别小）的数字转换成它是$10$的几次方，前面的例子中，$\log{9^{10}} \approx 9.5424$，以及$\log{0.1^{10}} = -10$。
+也就是说，在对数尺度下的正数代表增长、负数代表缩小。且只有当数值发生倍数变化时，才会在对数尺度上产生明显变化。</p>
+
+<p>但是这样的做法同样有问题，这几乎是一个常识的，“如何看待资产”的问题。如果一个人用<code class="language-plaintext highlighter-rouge">1万元</code>投资。那么当他的资产增长到<code class="language-plaintext highlighter-rouge">100万元</code>时，在对数坐标上得到的值是<code class="language-plaintext highlighter-rouge">2</code>；而当他的资产缩水到<code class="language-plaintext highlighter-rouge">100元</code>时，在对数坐标上得到的值是<code class="language-plaintext highlighter-rouge">-2</code>。
+虽然二者在坐标轴上相加为零，但前者与后者带来的心理和社会收益却是完全无法相提并论的。
+当然，除此之外，对数坐标还是比较适合显示连续相乘的结果。</p>
+
+<p>我将以上算式的结果绘制如下，如图所示，
+如果你按照这个规则进行投资，你会随着时间的推移失去所有的钱，因为在对数刻度下，在中心概率附近，收益的期望值是负数。</p>
+
+<p><img src="/assets/binomial-distribution-img/exponential%20boom.png" alt="exponentialBoom" title="exponentialBoom"></p>
+
+<h3 id="分散投资策略">分散投资策略</h3>
+
+<p>之前的分析结果表明，如果你将所有资金投入其中，长期来看你将失去所有的资金。
+然而，如果你将资金分成 $ m $ 份，并分 $ m $ 次进行操作，情况会有所不同。
+对于一次实验，其期望为：</p>
+
+\[E(Y) = \frac{1}{m} \sum_{x=0}^{m} P_m(x) \left( a \cdot x + b \cdot (m - x) \right)\]
+
+<p>其中 $ P_m(x) $ 是 $ m $ 次实验中 $ x $ 次成功的二项分布。
+事实证明，如果你将资金分开进行实验，风险（用标准差衡量）会有所减少。标准差的计算方式为：</p>
+
+\[\text{Var.} = E(Y^2) - E^2(Y)\]
+
+<p>其中：</p>
+
+\[E(Y^2) = \sum_{x=0}^{m} P_m(x) \left( \frac{a \cdot x + b \cdot (m - x)}{m} \right)^2\]
+
+<p><img src="/assets/binomial-distribution-img/separating.png" alt="separating" title="separating"></p>
+
+<h2 id="gamma-函数">Gamma 函数</h2>
+
+<p>Gamma 函数（$ \Gamma $）的定义为：</p>
+
+\[\Gamma(z) = \int_0^\infty t^{z-1} e^{-t} dt\]
+
+<p>它具有一个重要的性质：</p>
+
+\[\begin{cases}
+\Gamma(z+1) &amp;= z \Gamma(z) \\
+\Gamma(0) &amp;= 1
+\end{cases}
+\Rightarrow \Gamma(n+1) = n!, n \in [0, 1, 2, \dots]\]
+
+<p>因此，$ P(x) $ 可以通过 Beta 函数来表示：</p>
+
+\[\text{Beta}(x, y) = \frac{\Gamma(x+y+1)}{\Gamma(x+1) \Gamma(y+1)}\]
+
+<p>并且，</p>
+
+\[P_m(x) = \text{Beta}(x, m-x) \cdot p^x \cdot q^{m-x}\]
+
+<p>$\blacksquare$</p>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+        
+
+  <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time class="dt-published" datetime="2024-11-22T00:00:00+00:00">November 22, 2024</time></p>
+
+      </footer>
+
+      <section class="page__share">
+  
+
+  <a href="https://twitter.com/intent/tweet?text=%E4%BA%8C%E9%A1%B9%E5%88%86%E5%B8%83%E4%BA%8C%E4%B8%89%E4%BA%8B%EF%BC%88%E4%B8%80%EF%BC%89%20%2Fbook%2Fprobability%2Fbinomial%2F2024%2F11%2F22%2Fbinomial-distribution-1.html" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=%2Fbook%2Fprobability%2Fbinomial%2F2024%2F11%2F22%2Fbinomial-distribution-1.html" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
+
+  <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=/book/probability/binomial/2024/11/22/binomial-distribution-1.html" class="btn btn--linkedin" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on LinkedIn"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i><span> LinkedIn</span></a>
+</section>
+
+
+      
+  <nav class="pagination">
+    
+      <a href="/book/it/application/2024/11/17/%E5%AE%9A%E4%BD%8D%E4%BD%A0%E5%92%8C%E4%BD%A0%E7%9A%84%E4%BB%A3%E7%90%86%E7%9A%84%E6%A1%8C%E9%9D%A2%E7%A8%8B%E5%BA%8F-141dc9c70914803fb252ebe5ffa72df6.html" class="pagination--pager" title="定位你和你的代理的桌面程序
+">Previous</a>
+    
+    
+      <a href="/book/probability/binomial/momentgenerating/2024/11/22/binomial-distribution-2-moment-generating.html" class="pagination--pager" title="二项分布二三事（二）
+">Next</a>
+    
+  </nav>
+
+    </div>
+
+    
+  </article>
+
+  
+  
+    
+<div class="page__related">
+  
+  <h2 class="page__related-title">You May Also Enjoy</h2>
+  <div class="grid__wrapper">
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/2025/03/07/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%B8%AD%E7%9A%84%E6%95%B0.html" rel="permalink">计算机中的数
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">数字是非常有趣的东西，在一维尺度上，只需要简单操作就能以任意高的密度描述整个实数轴。另外，当它与计算机结合时就更有趣了。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/computervision/imageprocessing/2025/02/26/random-image-corse-to-fine.html" rel="permalink">粗分辨率相机能否重现细分辨率图像
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          less than 1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">摘要：本文探讨了如何通过低分辨率相机还原细分辨率图像信息的方法。通过对原始图像进行多样本加噪处理，并使用低分辨率相机进行多次拍摄，最终通过叠加拍摄结果来重建高分辨率图像。实验结果表明，该方法在RGB颜色空间的自然图像上也能取得较好的效果。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/fractal/dimension/2025/02/20/fractal-curve-fill-2d-space.html" rel="permalink">二维分形曲线铺满二维平面
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          less than 1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">本文以Koch分形曲线为例，展示了分形曲线的维度计算原理，并通过实验展示了随曲线维度的提高，分形曲线逐渐铺满二维平面的过程。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/programming/python/blocker/2025/02/13/Python-blocker-using-queue.html" rel="permalink">使用Queue的Python阻塞器
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">程序设计的核心不在键盘上，而在需求里。
+本文就是针对这样一系列常见需求：
+
+</p>
+  </article>
+</div>
+
+    
+  </div>
+</div>
+
+  
+  
+</div>
+
+      <section style="display: none">
+    <!--
+    Convert the assets image src,
+    it is the compatible way to support both md preview locally and static assets url.
+    -->
+
+    <p id="site-baseurl">/book</p>
+
+    <script>
+        {
+            let siteBaseurl = document.getElementById('site-baseurl').textContent,
+                imgs = document.getElementsByClassName('page__content')[0].getElementsByTagName('img'),
+                img, src, dst;
+
+            console.log(`Converting assets image src for ${imgs.length} images.`)
+            for (let i = 0; i < imgs.length; i++) {
+                img = imgs[i];
+                src = img.src;
+                dst = img.src.replace('/assets/', siteBaseurl + '/assets/')
+                img.src = dst
+                img.style.border = 'solid red';
+                console.log(`${i + 1} | ${imgs.length} : ${src} -> ${dst}`)
+            }
+        }
+    </script>
+
+</section>
+
+<section>
+    <!-- Erase the first <p> whose textContent is "[toc]" -->
+    <script>
+        {
+            let ps = document.getElementsByTagName('p'), p;
+            for (let i = 0; i < ps.length; i++) {
+                p = ps[i];
+                if (p.textContent.toLowerCase() === '[toc]') {
+                    p.textContent = ''
+                    console.log('Found [toc] and erased it.')
+                    break
+                }
+            }
+        }
+    </script>
+</section>
+
+<section>
+    <!-- It suffers from CORS permission
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    -->
+    <!-- <script src=" https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js"></script> -->
+</section>
+    </div>
+
+    
+
+    <div id="footer" class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+        <div class="page__footer-follow">
+  <ul class="social-icons">
+    
+
+    
+
+    
+      <li><a href="/book/feed.xml"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
+    
+  </ul>
+</div>
+
+<div class="page__footer-copyright">© 2025 <a href="">Listenzcc talks a lot</a>. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    
+  <script src="/book/assets/js/main.min.js"></script>
+
+
+
+
+
+
+
+
+
+  </body>
+</html>

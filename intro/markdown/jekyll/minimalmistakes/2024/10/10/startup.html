@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<!--
+  Minimal Mistakes Jekyll Theme 4.26.2 by Michael Rose
+  Copyright 2013-2024 Michael Rose - mademistakes.com | @mmistakes
+  Free for personal and commercial use under the MIT license
+  https://github.com/mmistakes/minimal-mistakes/blob/master/LICENSE
+--><html lang="en" class="no-js">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+
+<!-- begin _includes/seo.html --><title>Book manual - Listenzcc talks a lot</title>
+<meta name="description" content="The top level things about writing with markdown, serving with Jekyll, and publishing with github page.  [toc]  Cold startup  In the root directory, it is necessary to create the ./docs directory to start the project from the ground. Since the github page supports the page in the ./docs. The ./init-jekyll-site.ps1 script will create the directory, after that the following is required: 1     Edit the ./docs/_config.yml file for jekyll configuration.   Edit the ./docs/Gemfile file for ruby configuration.   Change directory (cd) to the ./docs.   Run bundle install to install the ruby.   Run bundle exec jekyll serve --trace to start the jekyll serve   BTW, I have put my default configuration files into the ./default directory.   Warm startup  Run bundle exec jekyll serve --trace to start the jekyll serve. The documents are in the _posts directory (see Markdown document for detail). The script will automatically update the _site directory, where the static files are placed.  It should be noticed that the script has to be restarted if you have the _config.yml or Gemfile file changed, or the changing will not be applied.  Markdown document  The .md or .markdown files inside the _posts directory are the documents. It is no matter how depth they are, but what really matter is their names. The good names are in the format of     YYYY-MM-DD-document-title.md   Only the regular file name is supported by the Jekyll.  Front matter  The document’s compile header is also required by the Jekyll. For example, the header of the document is like this:  &lt;!-- Example of YML compile header (front matter) --&gt;  ---  layout: single title: Startup for the writing date: 2024-10-10 author: listenzcc categories: Intro Markdown Jekyll MinimalMistakes toc: true  ---  The top level things about writing with markdown, serving with Jekyll, and publishing with github page.   It translates the variables to the Jekyll when compiling into .html files. The dashes wraps the header content and the paragraph following is the excerpt. The layout variable controls which _layout template is used by the MinimalMistakes 2 to render the document.  Features linking md and html  The Jekyll render the .md files into .html static files. Precisely, the .md files in _posts is rendered into .html files in _site by the Jekyll. During the process, the MinimalMistakes controls the output theme. Moreover, it requires .md file, Jekyll and MinimalMistakes configures to make the features work well.  BTW, the MinimalMistakes is installed in the directory like gem/ruby/3.3.0/gems/minimal-mistakes-jekyll-4.26.2 in my case.  Table of contents  The toc feature supporting is configured in the _config.yml file  # Use jekyll-toc plugin plugins:   - jekyll-toc   It also requires the compile header declaration in the .md file, to use the toc on the page.  # The toc option  # YML front matter: Put the toc on the page # It is specified to the document. toc: true  # It also works on the _config.yml file as the default option defaults:   - scope:       path: &quot;&quot;       type: posts     values:       layout: single       author_profile: true       share: true       related: true       mathjax: true       toc: true       toc_sticky: true       toc_label: &quot;Table of contents&quot;       toc_icon: &quot;bars&quot; # corresponding Font Awesome icon name (without fa prefix)       breadcrumbs: true # disabled by default   The icons can be found in the fontawesome. 3    Author profile  The author_profile: true option adds the author profile as the left sidebar. It requires the _data/authors.yml contains the author information. 4  listenzcc:   name: listenzcc   avatar: &quot;/assets/profile/bio-photo.jpg&quot;   bio: &quot;I am a programmer.&quot;   location: &quot;Somewhere&quot;   links:     - label: &quot;GitHub&quot;       icon: &quot;fab fa-fw fa-github&quot;       url: &quot;https://github.com/listenzcc&quot;     - label: &quot;Made Mistakes&quot;       icon: &quot;fas fa-fw fa-link&quot;       url: &quot;https://mademistakes.com&quot;   Image url  The image asset is an issue to support not only editing but also publishing. Specifically, the image in the .md file is like  &lt;!-- The difference between .md and .html file --&gt;  &lt;!-- Image block in the .md file The assets/ folder is on the root path of the project --&gt; ![toc-example](/assets/toc-example.png &quot;toc-example&quot;)  &lt;!-- Image tag in the .html file The site's url is http://127.0.0.1:4000 The site's baseurl is '/book' --&gt; &lt;img   src=&quot;http://127.0.0.1:4000/book/assets/toc-example.png&quot;   alt=&quot;toc-example&quot;   title=&quot;toc-example&quot;   style=&quot;border: solid red;&quot; /&gt;   It turns that the .html file needs its image under baseurl 5 but the .md file preview doesn’t need it. As a result, the baseurl should be automatically added to the img.src when rendering.  I haven’t find decent way to do that, so I override the _includes/after-content.html file. It is the javascript script doing the converting job after the content is loaded. The solution is specific to the MinimalMistakes, since it uses the _includes/after-content.html. BTW, to make the image looks better, I also border it with red color.                 Site variable       Description                       url       A site’s full URL including protocol, domain, and port (if applicable).                 baseurl       Name of sub-directory the site is served from e.g., /blog.             Code syntax  The code block detecting and syntax highlighting is configured in the _config.yml file. It also toggles whether to display the button of copy code.  # Code syntax configuration # rouge highlighter support highlighter: rouge  # Display copy code button enable_copy_code_button: true  # syntax highlight kramdown:   input: GFM   syntax_highlighter: rouge   syntax_highlighter_opts:     css_class: highlight     default_lang: console     span:       line_numbers: false     block:       line_numbers: true       start_line: 1   Equations  Take the equation for example  [\tag{1.1} e^{j \pi} + 1 = 0]  Add the math js script to the .html file makes it work, it also requires the markdown: kramdown in the _config.yml.  Also, the jekyll-spaceship6 solves the inline equation with $\alpha$ syntax, it gives $\alpha$. It requires the following setup  # Install jekyll-spaceship  # Install the gem in Gemfile gem 'jekyll-spaceship', group: :jekyll_plugins  # Add plugin in _config.yml plugins:   - jekyll-spaceship   It doesn’t require the .html file attached with the Mathjax code.  &lt;!-- Add the math js script to the .html file. It performs the equation rendering.  The markdown equation block is:  $$ \tag{1.1} e^{j \pi} + 1 = 0 $$ --&gt;  &lt;script src=&quot; https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js &quot;&gt;&lt;/script&gt;   Navigation bar  The navigation bar is the top bar for user experience improvements. I linked the buttons to the pages with functions, they are .md files inside _posts/tool page. Their layout is set to the type:  # Layout setup for navigation linked pages  # Searching page layout: search title: Search page permalink: /search/ excerpt: Built-in page for searching.  # Sorting by categories page layout: categories title: Sorted by Categories permalink: /categories/ excerpt: Built-in page for categories view.   Jekyll spaceship  The plugin is amazing, but it seems conflicting with other settings.  Github page compatible  The github page needs remote_theme rather than theme to compile the website. Remember to change it before push to github.  # ! The Local and Github settings conflict with each other. # Local # theme: minimal-mistakes-jekyll # Github remote_theme: &quot;mmistakes/minimal-mistakes&quot;   The .github/workflows/jekyll.yml is added to make the github-pages compile the project. It also requires the Gemfile in the root path of the project, so I copy it. Moreover, it is needed to reminder that perhaps I have made a mistake to open the access permission too much.                 https://jekyllrb.com/ ↩                 https://mmistakes.github.io/minimal-mistakes/docs/configuration/ ↩                 https://fontawesome.com/icons ↩                 https://mmistakes.github.io/minimal-mistakes/docs/authors/ ↩                 https://mademistakes.com/mastering-jekyll/site-url-baseurl/ ↩                 https://github.com/jeffreytse/jekyll-spaceship ↩">
+
+
+  <meta name="author" content="listenzcc">
+  
+  <meta property="article:author" content="listenzcc">
+  
+
+
+<meta property="og:type" content="article">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Listenzcc talks a lot">
+<meta property="og:title" content="Book manual">
+<meta property="og:url" content="/book/intro/markdown/jekyll/minimalmistakes/2024/10/10/startup.html">
+
+
+  <meta property="og:description" content="The top level things about writing with markdown, serving with Jekyll, and publishing with github page.  [toc]  Cold startup  In the root directory, it is necessary to create the ./docs directory to start the project from the ground. Since the github page supports the page in the ./docs. The ./init-jekyll-site.ps1 script will create the directory, after that the following is required: 1     Edit the ./docs/_config.yml file for jekyll configuration.   Edit the ./docs/Gemfile file for ruby configuration.   Change directory (cd) to the ./docs.   Run bundle install to install the ruby.   Run bundle exec jekyll serve --trace to start the jekyll serve   BTW, I have put my default configuration files into the ./default directory.   Warm startup  Run bundle exec jekyll serve --trace to start the jekyll serve. The documents are in the _posts directory (see Markdown document for detail). The script will automatically update the _site directory, where the static files are placed.  It should be noticed that the script has to be restarted if you have the _config.yml or Gemfile file changed, or the changing will not be applied.  Markdown document  The .md or .markdown files inside the _posts directory are the documents. It is no matter how depth they are, but what really matter is their names. The good names are in the format of     YYYY-MM-DD-document-title.md   Only the regular file name is supported by the Jekyll.  Front matter  The document’s compile header is also required by the Jekyll. For example, the header of the document is like this:  &lt;!-- Example of YML compile header (front matter) --&gt;  ---  layout: single title: Startup for the writing date: 2024-10-10 author: listenzcc categories: Intro Markdown Jekyll MinimalMistakes toc: true  ---  The top level things about writing with markdown, serving with Jekyll, and publishing with github page.   It translates the variables to the Jekyll when compiling into .html files. The dashes wraps the header content and the paragraph following is the excerpt. The layout variable controls which _layout template is used by the MinimalMistakes 2 to render the document.  Features linking md and html  The Jekyll render the .md files into .html static files. Precisely, the .md files in _posts is rendered into .html files in _site by the Jekyll. During the process, the MinimalMistakes controls the output theme. Moreover, it requires .md file, Jekyll and MinimalMistakes configures to make the features work well.  BTW, the MinimalMistakes is installed in the directory like gem/ruby/3.3.0/gems/minimal-mistakes-jekyll-4.26.2 in my case.  Table of contents  The toc feature supporting is configured in the _config.yml file  # Use jekyll-toc plugin plugins:   - jekyll-toc   It also requires the compile header declaration in the .md file, to use the toc on the page.  # The toc option  # YML front matter: Put the toc on the page # It is specified to the document. toc: true  # It also works on the _config.yml file as the default option defaults:   - scope:       path: &quot;&quot;       type: posts     values:       layout: single       author_profile: true       share: true       related: true       mathjax: true       toc: true       toc_sticky: true       toc_label: &quot;Table of contents&quot;       toc_icon: &quot;bars&quot; # corresponding Font Awesome icon name (without fa prefix)       breadcrumbs: true # disabled by default   The icons can be found in the fontawesome. 3    Author profile  The author_profile: true option adds the author profile as the left sidebar. It requires the _data/authors.yml contains the author information. 4  listenzcc:   name: listenzcc   avatar: &quot;/assets/profile/bio-photo.jpg&quot;   bio: &quot;I am a programmer.&quot;   location: &quot;Somewhere&quot;   links:     - label: &quot;GitHub&quot;       icon: &quot;fab fa-fw fa-github&quot;       url: &quot;https://github.com/listenzcc&quot;     - label: &quot;Made Mistakes&quot;       icon: &quot;fas fa-fw fa-link&quot;       url: &quot;https://mademistakes.com&quot;   Image url  The image asset is an issue to support not only editing but also publishing. Specifically, the image in the .md file is like  &lt;!-- The difference between .md and .html file --&gt;  &lt;!-- Image block in the .md file The assets/ folder is on the root path of the project --&gt; ![toc-example](/assets/toc-example.png &quot;toc-example&quot;)  &lt;!-- Image tag in the .html file The site's url is http://127.0.0.1:4000 The site's baseurl is '/book' --&gt; &lt;img   src=&quot;http://127.0.0.1:4000/book/assets/toc-example.png&quot;   alt=&quot;toc-example&quot;   title=&quot;toc-example&quot;   style=&quot;border: solid red;&quot; /&gt;   It turns that the .html file needs its image under baseurl 5 but the .md file preview doesn’t need it. As a result, the baseurl should be automatically added to the img.src when rendering.  I haven’t find decent way to do that, so I override the _includes/after-content.html file. It is the javascript script doing the converting job after the content is loaded. The solution is specific to the MinimalMistakes, since it uses the _includes/after-content.html. BTW, to make the image looks better, I also border it with red color.                 Site variable       Description                       url       A site’s full URL including protocol, domain, and port (if applicable).                 baseurl       Name of sub-directory the site is served from e.g., /blog.             Code syntax  The code block detecting and syntax highlighting is configured in the _config.yml file. It also toggles whether to display the button of copy code.  # Code syntax configuration # rouge highlighter support highlighter: rouge  # Display copy code button enable_copy_code_button: true  # syntax highlight kramdown:   input: GFM   syntax_highlighter: rouge   syntax_highlighter_opts:     css_class: highlight     default_lang: console     span:       line_numbers: false     block:       line_numbers: true       start_line: 1   Equations  Take the equation for example  [\tag{1.1} e^{j \pi} + 1 = 0]  Add the math js script to the .html file makes it work, it also requires the markdown: kramdown in the _config.yml.  Also, the jekyll-spaceship6 solves the inline equation with $\alpha$ syntax, it gives $\alpha$. It requires the following setup  # Install jekyll-spaceship  # Install the gem in Gemfile gem 'jekyll-spaceship', group: :jekyll_plugins  # Add plugin in _config.yml plugins:   - jekyll-spaceship   It doesn’t require the .html file attached with the Mathjax code.  &lt;!-- Add the math js script to the .html file. It performs the equation rendering.  The markdown equation block is:  $$ \tag{1.1} e^{j \pi} + 1 = 0 $$ --&gt;  &lt;script src=&quot; https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js &quot;&gt;&lt;/script&gt;   Navigation bar  The navigation bar is the top bar for user experience improvements. I linked the buttons to the pages with functions, they are .md files inside _posts/tool page. Their layout is set to the type:  # Layout setup for navigation linked pages  # Searching page layout: search title: Search page permalink: /search/ excerpt: Built-in page for searching.  # Sorting by categories page layout: categories title: Sorted by Categories permalink: /categories/ excerpt: Built-in page for categories view.   Jekyll spaceship  The plugin is amazing, but it seems conflicting with other settings.  Github page compatible  The github page needs remote_theme rather than theme to compile the website. Remember to change it before push to github.  # ! The Local and Github settings conflict with each other. # Local # theme: minimal-mistakes-jekyll # Github remote_theme: &quot;mmistakes/minimal-mistakes&quot;   The .github/workflows/jekyll.yml is added to make the github-pages compile the project. It also requires the Gemfile in the root path of the project, so I copy it. Moreover, it is needed to reminder that perhaps I have made a mistake to open the access permission too much.                 https://jekyllrb.com/ ↩                 https://mmistakes.github.io/minimal-mistakes/docs/configuration/ ↩                 https://fontawesome.com/icons ↩                 https://mmistakes.github.io/minimal-mistakes/docs/authors/ ↩                 https://mademistakes.com/mastering-jekyll/site-url-baseurl/ ↩                 https://github.com/jeffreytse/jekyll-spaceship ↩">
+
+
+
+
+
+
+
+  <meta property="article:published_time" content="2024-10-10T00:00:00+00:00">
+
+
+
+
+
+
+<link rel="canonical" href="/book/intro/markdown/jekyll/minimalmistakes/2024/10/10/startup.html">
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- end _includes/seo.html -->
+
+
+
+  <link href="/book/feed.xml" type="application/atom+xml" rel="alternate" title="Listenzcc talks a lot Feed">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script type="text/javascript">
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+  window.enable_copy_code_button = true;
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/book/assets/css/main.css">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css"></noscript>
+
+
+
+    <!-- start custom head snippets -->
+
+<!-- insert favicons. use https://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+  <script src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">MathJax.Hub.Config({         tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] }       });</script>
+</head>
+
+  <body class="layout--single">
+    <nav class="skip-links">
+  <ul>
+    <li><a href="#site-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        
+        <a class="site-title" href="/book/">
+          Listenzcc talks a lot
+          
+        </a>
+        <ul class="visible-links">
+<li class="masthead__menu-item">
+              <a href="/book/help-center/">Help</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/search/">Search</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/year-archive/">Posts</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="/book/categories/">Categories</a>
+            </li>
+<li class="masthead__menu-item">
+              <a href="https://github.com/listenzcc" target="_blank">External Link</a>
+            </li>
+</ul>
+        
+        <button class="greedy-nav__toggle hidden" type="button">
+          <span class="visually-hidden">Toggle menu</span>
+          <div class="navicon"></div>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+    <div class="initial-content">
+      
+
+
+
+
+  
+    
+
+
+
+<nav class="breadcrumbs">
+  <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+    
+    
+    
+      
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/" itemprop="item"><span itemprop="name">Home</span></a>
+
+          <meta itemprop="position" content="1">
+        </li>
+        <span class="sep">/</span>
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/intro" itemprop="item"><span itemprop="name">Intro</span></a>
+          <meta itemprop="position" content="2">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/markdown" itemprop="item"><span itemprop="name">Markdown</span></a>
+          <meta itemprop="position" content="3">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/jekyll" itemprop="item"><span itemprop="name">Jekyll</span></a>
+          <meta itemprop="position" content="4">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/minimalmistakes" itemprop="item"><span itemprop="name">Minimalmistakes</span></a>
+          <meta itemprop="position" content="5">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/2024" itemprop="item"><span itemprop="name">2024</span></a>
+          <meta itemprop="position" content="6">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/10" itemprop="item"><span itemprop="name">10</span></a>
+          <meta itemprop="position" content="7">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        
+        <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+          <a href="/book/10" itemprop="item"><span itemprop="name">10</span></a>
+          <meta itemprop="position" content="8">
+        </li>
+        <span class="sep">/</span>
+      
+    
+      
+      
+        <li class="current">Book manual</li>
+      
+    
+  </ol>
+</nav>
+
+  
+
+
+<div id="main" role="main">
+  
+  <div class="sidebar sticky">
+  
+
+
+<div itemscope itemtype="https://schema.org/Person" class="h-card">
+
+  
+    <div class="author__avatar">
+      <a href="/book/">
+        <img src="/book/assets/profile/bio-photo.jpg" alt="listenzcc" itemprop="image" class="u-photo">
+      </a>
+    </div>
+  
+
+  <div class="author__content">
+    <h3 class="author__name p-name" itemprop="name">
+      <a class="u-url" rel="me" href="/book/" itemprop="url">listenzcc</a>
+    </h3>
+    
+      <div class="author__bio p-note" itemprop="description">
+        <p>I am a programmer.</p>
+
+      </div>
+    
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">Follow</button>
+    <ul class="author__urls social-icons">
+      
+        <li itemprop="homeLocation" itemscope itemtype="https://schema.org/Place">
+          <i class="fas fa-fw fa-map-marker-alt" aria-hidden="true"></i> <span itemprop="name" class="p-locality">Somewhere</span>
+        </li>
+      
+
+      
+        
+          
+            <li><a href="https://github.com/listenzcc" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-fw fa-github" aria-hidden="true"></i><span class="label">GitHub</span></a></li>
+          
+        
+          
+            <li><a href="https://mademistakes.com" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fas fa-fw fa-link" aria-hidden="true"></i><span class="label">Made Mistakes</span></a></li>
+          
+        
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      <!--
+  <li>
+    <a href="http://link-to-whatever-social-network.com/user/" itemprop="sameAs" rel="nofollow noopener noreferrer me">
+      <i class="fas fa-fw" aria-hidden="true"></i> Custom Social Profile Link
+    </a>
+  </li>
+-->
+    </ul>
+  </div>
+</div>
+
+  
+  </div>
+
+
+
+  <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
+    <meta itemprop="headline" content="Book manual">
+    <meta itemprop="description" content="The top level things about writing with markdown, serving with Jekyll, and publishing with github page.[toc]Cold startupIn the root directory, it is necessary to create the ./docs directory to start the project from the ground.Since the github page supports the page in the ./docs.The ./init-jekyll-site.ps1 script will create the directory, after that the following is required: 1  Edit the ./docs/_config.yml file for jekyll configuration.  Edit the ./docs/Gemfile file for ruby configuration.  Change directory (cd) to the ./docs.  Run bundle install to install the ruby.  Run bundle exec jekyll serve --trace to start the jekyll serve  BTW, I have put my default configuration files into the ./default directory.Warm startupRun bundle exec jekyll serve --trace to start the jekyll serve.The documents are in the _posts directory (see Markdown document for detail).The script will automatically update the _site directory, where the static files are placed.It should be noticed that the script has to be restarted if you have the _config.yml or Gemfile file changed, or the changing will not be applied.Markdown documentThe .md or .markdown files inside the _posts directory are the documents.It is no matter how depth they are, but what really matter is their names.The good names are in the format of  YYYY-MM-DD-document-title.mdOnly the regular file name is supported by the Jekyll.Front matterThe document’s compile header is also required by the Jekyll.For example, the header of the document is like this:&lt;!-- Example of YML compile header (front matter) --&gt;---layout: singletitle: Startup for the writingdate: 2024-10-10author: listenzcccategories: Intro Markdown Jekyll MinimalMistakestoc: true---The top level things about writing with markdown, serving with Jekyll, and publishing with github page.It translates the variables to the Jekyll when compiling into .html files.The dashes wraps the header content and the paragraph following is the excerpt.The layout variable controls which _layout template is used by the MinimalMistakes 2 to render the document.Features linking md and htmlThe Jekyll render the .md files into .html static files.Precisely, the .md files in _posts is rendered into .html files in _site by the Jekyll.During the process, the MinimalMistakes controls the output theme.Moreover, it requires .md file, Jekyll and MinimalMistakes configures to make the features work well.BTW, the MinimalMistakes is installed in the directory like gem/ruby/3.3.0/gems/minimal-mistakes-jekyll-4.26.2 in my case.Table of contentsThe toc feature supporting is configured in the _config.yml file# Use jekyll-toc pluginplugins:  - jekyll-tocIt also requires the compile header declaration in the .md file, to use the toc on the page.# The toc option# YML front matter: Put the toc on the page# It is specified to the document.toc: true# It also works on the _config.yml file as the default optiondefaults:  - scope:      path: &quot;&quot;      type: posts    values:      layout: single      author_profile: true      share: true      related: true      mathjax: true      toc: true      toc_sticky: true      toc_label: &quot;Table of contents&quot;      toc_icon: &quot;bars&quot; # corresponding Font Awesome icon name (without fa prefix)      breadcrumbs: true # disabled by defaultThe icons can be found in the fontawesome. 3Author profileThe author_profile: true option adds the author profile as the left sidebar.It requires the _data/authors.yml contains the author information. 4listenzcc:  name: listenzcc  avatar: &quot;/assets/profile/bio-photo.jpg&quot;  bio: &quot;I am a programmer.&quot;  location: &quot;Somewhere&quot;  links:    - label: &quot;GitHub&quot;      icon: &quot;fab fa-fw fa-github&quot;      url: &quot;https://github.com/listenzcc&quot;    - label: &quot;Made Mistakes&quot;      icon: &quot;fas fa-fw fa-link&quot;      url: &quot;https://mademistakes.com&quot;Image urlThe image asset is an issue to support not only editing but also publishing.Specifically, the image in the .md file is like&lt;!-- The difference between .md and .html file --&gt;&lt;!--Image block in the .md fileThe assets/ folder is on the root path of the project--&gt;![toc-example](/assets/toc-example.png &quot;toc-example&quot;)&lt;!--Image tag in the .html fileThe site's url is http://127.0.0.1:4000The site's baseurl is '/book'--&gt;&lt;img  src=&quot;http://127.0.0.1:4000/book/assets/toc-example.png&quot;  alt=&quot;toc-example&quot;  title=&quot;toc-example&quot;  style=&quot;border: solid red;&quot;/&gt;It turns that the .html file needs its image under baseurl 5 but the .md file preview doesn’t need it.As a result, the baseurl should be automatically added to the img.src when rendering.I haven’t find decent way to do that, so I override the _includes/after-content.html file.It is the javascript script doing the converting job after the content is loaded.The solution is specific to the MinimalMistakes, since it uses the _includes/after-content.html.BTW, to make the image looks better, I also border it with red color.            Site variable      Description                  url      A site’s full URL including protocol, domain, and port (if applicable).              baseurl      Name of sub-directory the site is served from e.g., /blog.      Code syntaxThe code block detecting and syntax highlighting is configured in the _config.yml file.It also toggles whether to display the button of copy code.# Code syntax configuration# rouge highlighter supporthighlighter: rouge# Display copy code buttonenable_copy_code_button: true# syntax highlightkramdown:  input: GFM  syntax_highlighter: rouge  syntax_highlighter_opts:    css_class: highlight    default_lang: console    span:      line_numbers: false    block:      line_numbers: true      start_line: 1EquationsTake the equation for example[\tag{1.1} e^{j \pi} + 1 = 0]Add the math js script to the .html file makes it work, it also requires the markdown: kramdown in the _config.yml.Also, the jekyll-spaceship6 solves the inline equation with $\alpha$ syntax, it gives $\alpha$.It requires the following setup# Install jekyll-spaceship# Install the gem in Gemfilegem 'jekyll-spaceship', group: :jekyll_plugins# Add plugin in _config.ymlplugins:  - jekyll-spaceshipIt doesn’t require the .html file attached with the Mathjax code.&lt;!--Add the math js script to the .html file.It performs the equation rendering.The markdown equation block is:$$ \tag{1.1} e^{j \pi} + 1 = 0 $$--&gt;&lt;script src=&quot; https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js &quot;&gt;&lt;/script&gt;Navigation barThe navigation bar is the top bar for user experience improvements.I linked the buttons to the pages with functions, they are .md files inside _posts/tool page.Their layout is set to the type:# Layout setup for navigation linked pages# Searching pagelayout: searchtitle: Search pagepermalink: /search/excerpt: Built-in page for searching.# Sorting by categories pagelayout: categoriestitle: Sorted by Categoriespermalink: /categories/excerpt: Built-in page for categories view.Jekyll spaceshipThe plugin is amazing, but it seems conflicting with other settings.Github page compatibleThe github page needs remote_theme rather than theme to compile the website.Remember to change it before push to github.# ! The Local and Github settings conflict with each other.# Local# theme: minimal-mistakes-jekyll# Githubremote_theme: &quot;mmistakes/minimal-mistakes&quot;The .github/workflows/jekyll.yml is added to make the github-pages compile the project.It also requires the Gemfile in the root path of the project, so I copy it.Moreover, it is needed to reminder that perhaps I have made a mistake to open the access permission too much.            https://jekyllrb.com/ ↩              https://mmistakes.github.io/minimal-mistakes/docs/configuration/ ↩              https://fontawesome.com/icons ↩              https://mmistakes.github.io/minimal-mistakes/docs/authors/ ↩              https://mademistakes.com/mastering-jekyll/site-url-baseurl/ ↩              https://github.com/jeffreytse/jekyll-spaceship ↩      ">
+    <meta itemprop="datePublished" content="2024-10-10T00:00:00+00:00">
+    
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 id="page-title" class="page__title" itemprop="headline">
+            <a href="/book/intro/markdown/jekyll/minimalmistakes/2024/10/10/startup.html" itemprop="url">Book manual
+</a>
+          </h1>
+          
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          5 minute read
+        
+      </span>
+    
+  </p>
+
+
+        </header>
+      
+
+      <section class="page__content" itemprop="text">
+        
+          <aside class="sidebar__right sticky">
+            <nav class="toc">
+              <header><h4 class="nav__title">
+<i class="fas fa-music"></i> Table of contents</h4></header>
+              <ul class="toc__menu">
+<li><a href="#cold-startup">Cold startup</a></li>
+<li><a href="#warm-startup">Warm startup</a></li>
+<li>
+<a href="#markdown-document">Markdown document</a><ul><li><a href="#front-matter">Front matter</a></li></ul>
+</li>
+<li>
+<a href="#features-linking-md-and-html">Features linking md and html</a><ul>
+<li><a href="#table-of-contents">Table of contents</a></li>
+<li><a href="#author-profile">Author profile</a></li>
+<li><a href="#image-url">Image url</a></li>
+<li><a href="#code-syntax">Code syntax</a></li>
+<li><a href="#equations">Equations</a></li>
+<li><a href="#navigation-bar">Navigation bar</a></li>
+</ul>
+</li>
+<li><a href="#jekyll-spaceship">Jekyll spaceship</a></li>
+<li><a href="#github-page-compatible">Github page compatible</a></li>
+</ul>
+            </nav>
+          </aside>
+        
+        <p>The top level things about writing with markdown, serving with Jekyll, and publishing with github page.</p>
+
+<p>[toc]</p>
+
+<h2 id="cold-startup">Cold startup</h2>
+
+<p>In the root directory, it is necessary to create the <a href="">./docs</a> directory to start the project from the ground.
+Since the github page supports the page in the <a href="">./docs</a>.
+The <a href="">./init-jekyll-site.ps1</a> script will create the directory, after that the following is required: <sup id="fnref:jekyll" role="doc-noteref"><a href="#fn:jekyll" class="footnote" rel="footnote">1</a></sup></p>
+
+<ul>
+  <li>Edit the <a href="">./docs/_config.yml</a> file for jekyll configuration.</li>
+  <li>Edit the <a href="">./docs/Gemfile</a> file for ruby configuration.</li>
+  <li>Change directory (cd) to the <a href="">./docs</a>.</li>
+  <li>Run <code class="language-plaintext highlighter-rouge">bundle install</code> to install the ruby.</li>
+  <li>Run <code class="language-plaintext highlighter-rouge">bundle exec jekyll serve --trace</code> to start the jekyll serve</li>
+  <li>BTW, I have put my default configuration files into the <a href="">./default</a> directory.</li>
+</ul>
+
+<h2 id="warm-startup">Warm startup</h2>
+
+<p>Run <code class="language-plaintext highlighter-rouge">bundle exec jekyll serve --trace</code> to start the jekyll serve.
+The documents are in the <a href="">_posts</a> directory (see <strong>Markdown document</strong> for detail).
+The script will automatically update the <a href="">_site</a> directory, where the static files are placed.</p>
+
+<p>It should be noticed that the script has to be restarted if you have the <a href="">_config.yml</a> or <a href="">Gemfile</a> file changed, or the changing will not be applied.</p>
+
+<h2 id="markdown-document">Markdown document</h2>
+
+<p>The .md or .markdown files inside the <a href="">_posts</a> directory are the documents.
+It is no matter how depth they are, but what really matter is their names.
+The good names are in the format of</p>
+
+<blockquote>
+  <p>YYYY-MM-DD-document-title.md</p>
+</blockquote>
+
+<p>Only the regular file name is supported by the Jekyll.</p>
+
+<h3 id="front-matter">Front matter</h3>
+
+<p>The document’s compile header is also required by the Jekyll.
+For example, the header of the document is like this:</p>
+
+<div class="language-md highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- Example of YML compile header (front matter) --&gt;</span>
+<span class="p">
+---
+</span>
+layout: single
+title: Startup for the writing
+date: 2024-10-10
+author: listenzcc
+categories: Intro Markdown Jekyll MinimalMistakes
+toc: true
+<span class="p">
+---
+</span>
+The top level things about writing with markdown, serving with Jekyll, and publishing with github page.
+</code></pre></div></div>
+
+<p>It translates the variables to the Jekyll when compiling into .html files.
+The dashes wraps the header content and the paragraph following is the <strong>excerpt</strong>.
+The <code class="language-plaintext highlighter-rouge">layout</code> variable controls which <code class="language-plaintext highlighter-rouge">_layout</code> template is used by the MinimalMistakes <sup id="fnref:minimal-mistakes" role="doc-noteref"><a href="#fn:minimal-mistakes" class="footnote" rel="footnote">2</a></sup> to render the document.</p>
+
+<h2 id="features-linking-md-and-html">Features linking md and html</h2>
+
+<p>The Jekyll render the .md files into .html static files.
+Precisely, the .md files in <a href="">_posts</a> is rendered into .html files in <a href="">_site</a> by the Jekyll.
+During the process, the MinimalMistakes controls the output theme.
+Moreover, it requires .md file, Jekyll and MinimalMistakes configures to make the features work well.</p>
+
+<p>BTW, the MinimalMistakes is installed in the directory like <a href="">gem/ruby/3.3.0/gems/minimal-mistakes-jekyll-4.26.2</a> in my case.</p>
+
+<h3 id="table-of-contents">Table of contents</h3>
+
+<p>The toc feature supporting is configured in the <a href="">_config.yml</a> file</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Use jekyll-toc plugin</span>
+<span class="na">plugins</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">jekyll-toc</span>
+</code></pre></div></div>
+
+<p>It also requires the compile header declaration in the .md file, to use the toc on the page.</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># The toc option</span>
+
+<span class="c1"># YML front matter: Put the toc on the page</span>
+<span class="c1"># It is specified to the document.</span>
+<span class="na">toc</span><span class="pi">:</span> <span class="no">true</span>
+
+<span class="c1"># It also works on the _config.yml file as the default option</span>
+<span class="na">defaults</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">scope</span><span class="pi">:</span>
+      <span class="na">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+      <span class="na">type</span><span class="pi">:</span> <span class="s">posts</span>
+    <span class="na">values</span><span class="pi">:</span>
+      <span class="na">layout</span><span class="pi">:</span> <span class="s">single</span>
+      <span class="na">author_profile</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">share</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">related</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">mathjax</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">toc</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">toc_sticky</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">toc_label</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Table</span><span class="nv"> </span><span class="s">of</span><span class="nv"> </span><span class="s">contents"</span>
+      <span class="na">toc_icon</span><span class="pi">:</span> <span class="s2">"</span><span class="s">bars"</span> <span class="c1"># corresponding Font Awesome icon name (without fa prefix)</span>
+      <span class="na">breadcrumbs</span><span class="pi">:</span> <span class="no">true</span> <span class="c1"># disabled by default</span>
+</code></pre></div></div>
+
+<p>The icons can be found in the fontawesome. <sup id="fnref:fontawesome-icons" role="doc-noteref"><a href="#fn:fontawesome-icons" class="footnote" rel="footnote">3</a></sup></p>
+
+<p><img src="/assets/toc-example.png" alt="toc-example" title="toc-example"></p>
+
+<h3 id="author-profile">Author profile</h3>
+
+<p>The <code class="language-plaintext highlighter-rouge">author_profile: true</code> option adds the author profile as the left sidebar.
+It requires the <a href="">_data/authors.yml</a> contains the author information. <sup id="fnref:author-profile" role="doc-noteref"><a href="#fn:author-profile" class="footnote" rel="footnote">4</a></sup></p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">listenzcc</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">listenzcc</span>
+  <span class="na">avatar</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/assets/profile/bio-photo.jpg"</span>
+  <span class="na">bio</span><span class="pi">:</span> <span class="s2">"</span><span class="s">I</span><span class="nv"> </span><span class="s">am</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">programmer."</span>
+  <span class="na">location</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Somewhere"</span>
+  <span class="na">links</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">label</span><span class="pi">:</span> <span class="s2">"</span><span class="s">GitHub"</span>
+      <span class="na">icon</span><span class="pi">:</span> <span class="s2">"</span><span class="s">fab</span><span class="nv"> </span><span class="s">fa-fw</span><span class="nv"> </span><span class="s">fa-github"</span>
+      <span class="na">url</span><span class="pi">:</span> <span class="s2">"</span><span class="s">https://github.com/listenzcc"</span>
+    <span class="pi">-</span> <span class="na">label</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Made</span><span class="nv"> </span><span class="s">Mistakes"</span>
+      <span class="na">icon</span><span class="pi">:</span> <span class="s2">"</span><span class="s">fas</span><span class="nv"> </span><span class="s">fa-fw</span><span class="nv"> </span><span class="s">fa-link"</span>
+      <span class="na">url</span><span class="pi">:</span> <span class="s2">"</span><span class="s">https://mademistakes.com"</span>
+</code></pre></div></div>
+
+<h3 id="image-url">Image url</h3>
+
+<p>The image asset is an issue to support not only editing but also publishing.
+Specifically, the image in the .md file is like</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- The difference between .md and .html file --&gt;</span>
+
+<span class="c">&lt;!--
+Image block in the .md file
+The assets/ folder is on the root path of the project
+--&gt;</span>
+![toc-example](/assets/toc-example.png "toc-example")
+
+<span class="c">&lt;!--
+Image tag in the .html file
+The site's url is http://127.0.0.1:4000
+The site's baseurl is '/book'
+--&gt;</span>
+<span class="nt">&lt;img</span>
+  <span class="na">src=</span><span class="s">"http://127.0.0.1:4000/book/assets/toc-example.png"</span>
+  <span class="na">alt=</span><span class="s">"toc-example"</span>
+  <span class="na">title=</span><span class="s">"toc-example"</span>
+  <span class="na">style=</span><span class="s">"border: solid red;"</span>
+<span class="nt">/&gt;</span>
+</code></pre></div></div>
+
+<p>It turns that the .html file needs its image under <code class="language-plaintext highlighter-rouge">baseurl</code> <sup id="fnref:base-url" role="doc-noteref"><a href="#fn:base-url" class="footnote" rel="footnote">5</a></sup> but the .md file preview doesn’t need it.
+As a result, the <code class="language-plaintext highlighter-rouge">baseurl</code> should be automatically added to the <code class="language-plaintext highlighter-rouge">img.src</code> when rendering.</p>
+
+<p>I haven’t find decent way to do that, so I override the <a href="">_includes/after-content.html</a> file.
+It is the javascript script doing the converting job after the <code class="language-plaintext highlighter-rouge">content</code> is loaded.
+The solution is specific to the MinimalMistakes, since it uses the <a href="">_includes/after-content.html</a>.
+BTW, to make the image looks better, I also border it with red color.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>
+<p>Site variable</p>
+</th>
+      <th>
+<p>Description</p>
+</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+<p>url</p>
+</td>
+      <td>
+<p>A site’s full URL including protocol, domain, and port (if applicable).</p>
+</td>
+    </tr>
+    <tr>
+      <td>
+<p>baseurl</p>
+</td>
+      <td>
+<p>Name of sub-directory the site is served from e.g., /blog.</p>
+</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><img src="/assets/url-example.jpg" alt="url-example" title="url-example"></p>
+
+<h3 id="code-syntax">Code syntax</h3>
+
+<p>The code block detecting and syntax highlighting is configured in the <a href="">_config.yml</a> file.
+It also toggles whether to display the button of copy code.</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Code syntax configuration</span>
+<span class="c1"># rouge highlighter support</span>
+<span class="na">highlighter</span><span class="pi">:</span> <span class="s">rouge</span>
+
+<span class="c1"># Display copy code button</span>
+<span class="na">enable_copy_code_button</span><span class="pi">:</span> <span class="no">true</span>
+
+<span class="c1"># syntax highlight</span>
+<span class="na">kramdown</span><span class="pi">:</span>
+  <span class="na">input</span><span class="pi">:</span> <span class="s">GFM</span>
+  <span class="na">syntax_highlighter</span><span class="pi">:</span> <span class="s">rouge</span>
+  <span class="na">syntax_highlighter_opts</span><span class="pi">:</span>
+    <span class="na">css_class</span><span class="pi">:</span> <span class="s">highlight</span>
+    <span class="na">default_lang</span><span class="pi">:</span> <span class="s">console</span>
+    <span class="na">span</span><span class="pi">:</span>
+      <span class="na">line_numbers</span><span class="pi">:</span> <span class="no">false</span>
+    <span class="na">block</span><span class="pi">:</span>
+      <span class="na">line_numbers</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">start_line</span><span class="pi">:</span> <span class="m">1</span>
+</code></pre></div></div>
+
+<h3 id="equations">Equations</h3>
+
+<p>Take the equation for example</p>
+
+\[\tag{1.1} e^{j \pi} + 1 = 0\]
+
+<p>Add the math js script to the .html file makes it work, it also requires the <code class="language-plaintext highlighter-rouge">markdown: kramdown</code> in the <a href="">_config.yml</a>.</p>
+
+<p>Also, the jekyll-spaceship<sup id="fnref:jekyll-spaceship" role="doc-noteref"><a href="#fn:jekyll-spaceship" class="footnote" rel="footnote">6</a></sup> solves the inline equation with <code class="language-plaintext highlighter-rouge">$\alpha$</code> syntax, it gives $\alpha$.
+It requires the following setup</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Install jekyll-spaceship</span>
+
+<span class="c1"># Install the gem in Gemfile</span>
+<span class="s">gem 'jekyll-spaceship', group</span><span class="err">:</span> <span class="s">:jekyll_plugins</span>
+
+<span class="c1"># Add plugin in _config.yml</span>
+<span class="na">plugins</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">jekyll-spaceship</span>
+</code></pre></div></div>
+
+<p>It doesn’t require the .html file attached with the Mathjax code.</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!--
+Add the math js script to the .html file.
+It performs the equation rendering.
+
+The markdown equation block is:
+
+$$ \tag{1.1} e^{j \pi} + 1 = 0 $$
+--&gt;</span>
+
+<span class="nt">&lt;script </span><span class="na">src=</span><span class="s">" https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js "</span><span class="nt">&gt;&lt;/script&gt;</span>
+</code></pre></div></div>
+
+<h3 id="navigation-bar">Navigation bar</h3>
+
+<p>The navigation bar is the top bar for user experience improvements.
+I linked the buttons to the pages with functions, they are .md files inside <a href="">_posts/tool page</a>.
+Their layout is set to the type:</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Layout setup for navigation linked pages</span>
+
+<span class="c1"># Searching page</span>
+<span class="na">layout</span><span class="pi">:</span> <span class="s">search</span>
+<span class="na">title</span><span class="pi">:</span> <span class="s">Search page</span>
+<span class="na">permalink</span><span class="pi">:</span> <span class="s">/search/</span>
+<span class="na">excerpt</span><span class="pi">:</span> <span class="s">Built-in page for searching.</span>
+
+<span class="c1"># Sorting by categories page</span>
+<span class="na">layout</span><span class="pi">:</span> <span class="s">categories</span>
+<span class="na">title</span><span class="pi">:</span> <span class="s">Sorted by Categories</span>
+<span class="na">permalink</span><span class="pi">:</span> <span class="s">/categories/</span>
+<span class="na">excerpt</span><span class="pi">:</span> <span class="s">Built-in page for categories view.</span>
+</code></pre></div></div>
+
+<h2 id="jekyll-spaceship">Jekyll spaceship</h2>
+
+<p>The plugin is amazing, but it seems conflicting with other settings.</p>
+
+<h2 id="github-page-compatible">Github page compatible</h2>
+
+<p>The github page needs <code class="language-plaintext highlighter-rouge">remote_theme</code> rather than <code class="language-plaintext highlighter-rouge">theme</code> to compile the website.
+Remember to change it before push to github.</p>
+
+<div class="language-yml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># ! The Local and Github settings conflict with each other.</span>
+<span class="c1"># Local</span>
+<span class="c1"># theme: minimal-mistakes-jekyll</span>
+<span class="c1"># Github</span>
+<span class="na">remote_theme</span><span class="pi">:</span> <span class="s2">"</span><span class="s">mmistakes/minimal-mistakes"</span>
+</code></pre></div></div>
+
+<p>The <a href="">.github/workflows/jekyll.yml</a> is added to make the github-pages compile the project.
+It also requires the Gemfile in the <code class="language-plaintext highlighter-rouge">root</code> path of the project, so I copy it.
+Moreover, it is needed to reminder that perhaps I have made a mistake to open the access permission too much.</p>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:jekyll" role="doc-endnote">
+      <p><a href="https://jekyllrb.com/">https://jekyllrb.com/</a> <a href="#fnref:jekyll" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:minimal-mistakes" role="doc-endnote">
+      <p><a href="https://mmistakes.github.io/minimal-mistakes/docs/configuration/">https://mmistakes.github.io/minimal-mistakes/docs/configuration/</a> <a href="#fnref:minimal-mistakes" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:fontawesome-icons" role="doc-endnote">
+      <p><a href="https://fontawesome.com/icons">https://fontawesome.com/icons</a> <a href="#fnref:fontawesome-icons" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:author-profile" role="doc-endnote">
+      <p><a href="https://mmistakes.github.io/minimal-mistakes/docs/authors/">https://mmistakes.github.io/minimal-mistakes/docs/authors/</a> <a href="#fnref:author-profile" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:base-url" role="doc-endnote">
+      <p><a href="https://mademistakes.com/mastering-jekyll/site-url-baseurl/">https://mademistakes.com/mastering-jekyll/site-url-baseurl/</a> <a href="#fnref:base-url" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:jekyll-spaceship" role="doc-endnote">
+      <p><a href="https://github.com/jeffreytse/jekyll-spaceship">https://github.com/jeffreytse/jekyll-spaceship</a> <a href="#fnref:jekyll-spaceship" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+  </ol>
+</div>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+        
+
+  <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time class="dt-published" datetime="2024-10-10T00:00:00+00:00">October 10, 2024</time></p>
+
+      </footer>
+
+      <section class="page__share">
+  
+
+  <a href="https://twitter.com/intent/tweet?text=Book+manual%20%2Fbook%2Fintro%2Fmarkdown%2Fjekyll%2Fminimalmistakes%2F2024%2F10%2F10%2Fstartup.html" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=%2Fbook%2Fintro%2Fmarkdown%2Fjekyll%2Fminimalmistakes%2F2024%2F10%2F10%2Fstartup.html" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
+
+  <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=/book/intro/markdown/jekyll/minimalmistakes/2024/10/10/startup.html" class="btn btn--linkedin" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on LinkedIn"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i><span> LinkedIn</span></a>
+</section>
+
+
+      
+  <nav class="pagination">
+    
+      <a href="/book/year-archive/" class="pagination--pager" title="Sorted by Years
+">Previous</a>
+    
+    
+      <a href="/book/jekyll/update/2024/10/10/welcome-to-jekyll.html" class="pagination--pager" title="Welcome to Jekyll!
+">Next</a>
+    
+  </nav>
+
+    </div>
+
+    
+  </article>
+
+  
+  
+    
+<div class="page__related">
+  
+  <h2 class="page__related-title">You May Also Enjoy</h2>
+  <div class="grid__wrapper">
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/2025/03/07/%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%B8%AD%E7%9A%84%E6%95%B0.html" rel="permalink">计算机中的数
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">数字是非常有趣的东西，在一维尺度上，只需要简单操作就能以任意高的密度描述整个实数轴。另外，当它与计算机结合时就更有趣了。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/computervision/imageprocessing/2025/02/26/random-image-corse-to-fine.html" rel="permalink">粗分辨率相机能否重现细分辨率图像
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          less than 1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">摘要：本文探讨了如何通过低分辨率相机还原细分辨率图像信息的方法。通过对原始图像进行多样本加噪处理，并使用低分辨率相机进行多次拍摄，最终通过叠加拍摄结果来重建高分辨率图像。实验结果表明，该方法在RGB颜色空间的自然图像上也能取得较好的效果。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/fractal/dimension/2025/02/20/fractal-curve-fill-2d-space.html" rel="permalink">二维分形曲线铺满二维平面
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          less than 1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">本文以Koch分形曲线为例，展示了分形曲线的维度计算原理，并通过实验展示了随曲线维度的提高，分形曲线逐渐铺满二维平面的过程。
+
+</p>
+  </article>
+</div>
+
+    
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+        <a href="/book/programming/python/blocker/2025/02/13/Python-blocker-using-queue.html" rel="permalink">使用Queue的Python阻塞器
+</a>
+      
+    </h2>
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          1 minute read
+        
+      </span>
+    
+  </p>
+
+
+    <p class="archive__item-excerpt" itemprop="description">程序设计的核心不在键盘上，而在需求里。
+本文就是针对这样一系列常见需求：
+
+</p>
+  </article>
+</div>
+
+    
+  </div>
+</div>
+
+  
+  
+</div>
+
+      <section style="display: none">
+    <!--
+    Convert the assets image src,
+    it is the compatible way to support both md preview locally and static assets url.
+    -->
+
+    <p id="site-baseurl">/book</p>
+
+    <script>
+        {
+            let siteBaseurl = document.getElementById('site-baseurl').textContent,
+                imgs = document.getElementsByClassName('page__content')[0].getElementsByTagName('img'),
+                img, src, dst;
+
+            console.log(`Converting assets image src for ${imgs.length} images.`)
+            for (let i = 0; i < imgs.length; i++) {
+                img = imgs[i];
+                src = img.src;
+                dst = img.src.replace('/assets/', siteBaseurl + '/assets/')
+                img.src = dst
+                img.style.border = 'solid red';
+                console.log(`${i + 1} | ${imgs.length} : ${src} -> ${dst}`)
+            }
+        }
+    </script>
+
+</section>
+
+<section>
+    <!-- Erase the first <p> whose textContent is "[toc]" -->
+    <script>
+        {
+            let ps = document.getElementsByTagName('p'), p;
+            for (let i = 0; i < ps.length; i++) {
+                p = ps[i];
+                if (p.textContent.toLowerCase() === '[toc]') {
+                    p.textContent = ''
+                    console.log('Found [toc] and erased it.')
+                    break
+                }
+            }
+        }
+    </script>
+</section>
+
+<section>
+    <!-- It suffers from CORS permission
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    -->
+    <!-- <script src=" https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.min.js"></script> -->
+</section>
+    </div>
+
+    
+
+    <div id="footer" class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+        <div class="page__footer-follow">
+  <ul class="social-icons">
+    
+
+    
+
+    
+      <li><a href="/book/feed.xml"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
+    
+  </ul>
+</div>
+
+<div class="page__footer-copyright">© 2025 <a href="">Listenzcc talks a lot</a>. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    
+  <script src="/book/assets/js/main.min.js"></script>
+
+
+
+
+
+
+
+
+
+  </body>
+</html>
